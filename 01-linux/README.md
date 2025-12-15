@@ -116,6 +116,11 @@ Create a shell script that:
 # Your code here
 ```
 
+## Key Concepts
+
+For a comprehensive guide to Linux concepts specifically for application developers, see:
+- **[Key Concepts for Developers](./key-concepts.md)** - Essential Linux skills from a development perspective
+
 ## Additional Resources
 
 ### Documentation

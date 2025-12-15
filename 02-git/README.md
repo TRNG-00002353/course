@@ -273,6 +273,11 @@ Update dependencies to latest versions
 - Don't commit sensitive information
 - Use meaningful branch names
 
+## Key Concepts
+
+For a comprehensive guide to Git concepts specifically for application developers, see:
+- **[Key Concepts for Developers](./key-concepts.md)** - Essential Git skills from a development perspective
+
 ## Additional Resources
 
 ### Documentation
