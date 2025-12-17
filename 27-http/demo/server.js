@@ -14,14 +14,43 @@ let nextId = 3;
 // Session storage
 const sessions = new Map();
 
-// Helper: Parse JSON body
+// Helper: Parse request body (JSON or form-urlencoded)
 function parseBody(req) {
     return new Promise((resolve, reject) => {
         let body = '';
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
             try {
-                resolve(body ? JSON.parse(body) : {});
+                if (!body) {
+                    resolve({});
+                    return;
+                }
+
+                const contentType = req.headers['content-type'] || '';
+
+                // Parse JSON
+                if (contentType.includes('application/json')) {
+                    resolve(JSON.parse(body));
+                }
+                // Parse form-urlencoded
+                else if (contentType.includes('application/x-www-form-urlencoded')) {
+                    const params = new URLSearchParams(body);
+                    const data = {};
+                    for (const [key, value] of params) {
+                        data[key] = value;
+                    }
+                    // Map common field name variations
+                    if (data.username && !data.name) data.name = data.username;
+                    resolve(data);
+                }
+                // Try JSON as fallback
+                else {
+                    try {
+                        resolve(JSON.parse(body));
+                    } catch {
+                        resolve({ raw: body });
+                    }
+                }
             } catch (e) {
                 reject(e);
             }
