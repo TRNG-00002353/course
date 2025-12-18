@@ -132,9 +132,9 @@ This program covers the complete technology stack required for modern enterprise
 
 | Project | Technologies | Duration | Description |
 |---------|-------------|----------|-------------|
-| [Project 1](./projects/project-1-java-mysql-jdbc/) | Java, MySQL, JDBC | Week 3 | Console-based application with database integration |
-| [Project 2](./projects/project-2-spring-angular/) | Spring Boot, Spring Data JPA, Angular | Weeks 7-10 | Full-stack web application with REST APIs |
-| [Project 3](./projects/project-3-cloud-deployment/) | Full Stack + Docker + Kubernetes + GCP | Weeks 12-13 | Cloud-native microservices deployment |
+| [Project 1](./projects-self/project-1-java-mysql-jdbc/) | Java, MySQL, JDBC | Week 3 | Console-based application with database integration |
+| [Project 2](./projects-self/project-2-spring-angular/) | Spring Boot, Spring Data JPA, Angular | Weeks 7-10 | Full-stack web application with REST APIs |
+| [Project 3](./projects-self/project-3-cloud-deployment/) | Full Stack + Docker + Kubernetes + GCP | Weeks 12-13 | Cloud-native microservices deployment |
 
 ## Prerequisites
 
@@ -288,7 +288,8 @@ Copyright © 2025 Revature, LLC. All Rights Reserved.
 ## Quick Links
 
 - [Week 1 Orientation](./01-linux/)
-- [Project Guidelines](./projects/)
+- [Individual Projects](./projects-self/)
+- [Team Projects](./projects-team/)
 - [Setup Instructions](./resources/setup-guides/)
 - [FAQs](./resources/faqs.md)
 

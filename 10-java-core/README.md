@@ -516,7 +516,7 @@ You should be comfortable with:
 - [ ] Using Java 21 features
 
 ## Projects Using This Module
-- [Project 1: Java MySQL JDBC Application](../../projects/project-1-java-mysql-jdbc/)
+- [Project 1: Java MySQL JDBC Application](../projects-self/project-1-java-mysql-jdbc/)
 
 ## Next Steps
 
