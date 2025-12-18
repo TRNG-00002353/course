@@ -2,34 +2,87 @@
 
 ## Overview
 
-This folder contains **10 team project requirements** designed to evolve throughout the training program. Each project starts as a **frontend UI application** and progressively transforms into a **full-stack application** as learners acquire new technologies.
+This folder contains **10 team project requirements** designed to evolve throughout the **13-week training program**. Each project starts as a **frontend UI application** and progressively transforms into a **full-stack cloud-deployed application** across three major project milestones.
 
 Each project is designed for a **team of 4 members**, following Agile development workflows with Git collaboration, issue tracking, and code reviews.
 
 ---
 
-## Project Evolution Roadmap
+## Program Timeline & Project Milestones
 
-These projects are designed to grow with your learning journey. As you master new technologies, you'll expand the same project with additional user stories and functionality.
+| Week | Focus | Milestone |
+|------|-------|-----------|
+| 1-2 | HTML, CSS, Bootstrap, Git, Agile | UI Foundation |
+| 3-5 | Java, MySQL, JDBC | Backend Development |
+| **6** | **PROJECT 1 PRESENTATION** | **Java + MySQL + JDBC** |
+| 7-8 | Spring Boot, Spring JPA | Framework Migration |
+| 9-10 | Angular, TypeScript | Frontend SPA |
+| **11** | **PROJECT 2 PRESENTATION** | **Spring Boot + Angular** |
+| 12 | Docker, Kubernetes, GCP | Cloud Deployment |
+| **13** | **PROJECT 3 / FINAL DEMO** | **Full Stack + Cloud** |
 
-| Phase | Technologies | Focus | User Stories |
-|-------|--------------|-------|--------------|
-| **Phase 1** | HTML, CSS, Bootstrap | Static UI, Responsive Design, Semantic HTML | 12 stories (3/member) |
-| **Phase 2** | JavaScript, DOM, ES6+ | Interactivity, Form Validation, Dynamic Content | +8 stories (2/member) |
-| **Phase 3** | TypeScript, Angular | SPA Architecture, Components, Services, Routing | +12 stories (3/member) |
-| **Phase 4** | Java, JDBC, SQL | Backend API, Database Design, Data Persistence | +12 stories (3/member) |
-| **Phase 5** | Spring Boot, Spring Data | REST APIs, Security, Production-Ready Backend | +8 stories (2/member) |
-| **Phase 6** | Cloud, DevOps | Deployment, CI/CD, Monitoring | +4 stories (1/member) |
+---
 
-### Total Project Growth
-- **Phase 1 (UI):** 12 user stories
-- **Phase 1-2 (Interactive UI):** 20 user stories
-- **Phase 1-3 (Angular SPA):** 32 user stories
-- **Phase 1-4 (Full Stack with Java):** 44 user stories
-- **Phase 1-5 (Spring Boot):** 52 user stories
-- **Phase 1-6 (Deployed Application):** 56 user stories
+## Project Evolution by Milestone
 
-> **Note:** User stories for Phases 2-6 will be added to each project document as the curriculum progresses.
+### Project 1 (Week 6)
+**Technology Stack:** Java, MySQL, JDBC
+
+| Component | Technologies |
+|-----------|--------------|
+| Frontend | HTML, CSS, Bootstrap |
+| Backend | Java (Servlets or Console) |
+| Database | MySQL |
+| Data Access | JDBC |
+
+**User Stories:** 12+ (UI) + 12+ (Backend) = **24+ total**
+
+---
+
+### Project 2 (Week 11)
+**Technology Stack:** Java, MySQL, Spring Boot, Spring JPA, Angular
+
+| Component | Technologies |
+|-----------|--------------|
+| Frontend | Angular, TypeScript |
+| Backend | Spring Boot, Spring JPA |
+| Database | MySQL |
+| API | REST APIs |
+
+**User Stories:** Previous 24+ + 24+ (Spring/Angular) = **48+ total**
+
+---
+
+### Project 3 / Final (Week 13)
+**Technology Stack:** Java, MySQL, Spring Boot, Spring Data/JPA, Docker, Kubernetes, GCP
+
+| Component | Technologies |
+|-----------|--------------|
+| Frontend | Angular |
+| Backend | Spring Boot, Spring Data JPA |
+| Database | MySQL (Cloud SQL) |
+| Containerization | Docker |
+| Orchestration | Kubernetes |
+| Cloud Platform | GCP |
+
+**User Stories:** Previous 48+ + 8+ (DevOps) = **56+ total**
+
+---
+
+## User Story Distribution by Phase
+
+| Phase | Timeline | Technologies | Min Stories/Member | Min Total |
+|-------|----------|--------------|-------------------|-----------|
+| **UI Foundation** | Week 1-2 | HTML, CSS, Bootstrap | 3+ | 12+ |
+| **Java Backend** | Week 3-5 | Java, MySQL, JDBC | 3+ | 12+ |
+| *Project 1* | *Week 6* | | | *24+* |
+| **Spring Framework** | Week 7-8 | Spring Boot, Spring JPA | 3+ | 12+ |
+| **Angular Frontend** | Week 9-10 | Angular, TypeScript | 3+ | 12+ |
+| *Project 2* | *Week 11* | | | *48+* |
+| **Cloud Deployment** | Week 12 | Docker, K8s, GCP | 2+ | 8+ |
+| *Project 3 / Final* | *Week 13* | | | *56+* |
+
+> **Note:** Each learner should complete a **minimum of 3 features per phase**. Facilitators/Mentors may add more user stories based on project complexity and learner progress. Current document contains **Phase 1: UI Foundation** stories only.
 
 ---
 
@@ -185,19 +238,24 @@ Set up a GitHub Project board with:
 **Assignment Labels:**
 - `member-a` / `member-b` / `member-c` / `member-d`
 
-**Phase Labels (add as curriculum progresses):**
-- `phase-1:ui` - HTML, CSS, Bootstrap
-- `phase-2:javascript` - JavaScript interactivity
-- `phase-3:angular` - Angular SPA
-- `phase-4:java` - Java backend
-- `phase-5:spring` - Spring Boot
-- `phase-6:devops` - Deployment
+**Project Milestone Labels:**
+- `project-1` - Week 6 milestone (Java + JDBC)
+- `project-2` - Week 11 milestone (Spring + Angular)
+- `project-3` - Week 13 final (Cloud deployment)
+
+**Technology Phase Labels:**
+- `ui` - HTML, CSS, Bootstrap (Week 1-2)
+- `java-jdbc` - Java backend with JDBC (Week 3-5)
+- `spring` - Spring Boot, Spring JPA (Week 7-8)
+- `angular` - Angular SPA (Week 9-10)
+- `devops` - Docker, K8s, GCP (Week 12)
 
 **Technology Labels:**
 - `html` / `css` / `bootstrap`
-- `javascript` / `typescript`
-- `angular` / `java` / `spring`
-- `database` / `api` / `security`
+- `java` / `jdbc` / `mysql`
+- `spring-boot` / `spring-jpa`
+- `angular` / `typescript`
+- `docker` / `kubernetes` / `gcp`
 
 ---
 
@@ -279,11 +337,11 @@ Before approving a PR, reviewers should verify:
 
 ---
 
-## Phase-wise Technical Evolution
+## Technical Requirements by Project
 
-These projects are architected to evolve seamlessly as new technologies are introduced.
+### Project 1 Requirements (Week 6)
 
-### Phase 1: UI Foundation (Current)
+#### UI Layer (Week 1-2)
 **Technologies:** HTML5, CSS3, Bootstrap 5
 
 - Semantic HTML structure
@@ -293,101 +351,139 @@ These projects are architected to evolve seamlessly as new technologies are intr
 - All forms use proper `name` attributes (ready for backend)
 - Form `action` attributes set to `#` (placeholder for API endpoints)
 
-### Phase 2: JavaScript Interactivity
-**Technologies:** JavaScript ES6+, DOM Manipulation
+#### Backend Layer (Week 3-5)
+**Technologies:** Java, MySQL, JDBC
 
 **Example User Stories to Add:**
-- Form validation with real-time feedback
-- Dynamic content filtering and sorting
-- Local storage for cart/preferences
-- Interactive image galleries
-- Modal dialogs and popups
-- Fetch API for mock data
-
-### Phase 3: Angular SPA
-**Technologies:** TypeScript, Angular, RxJS
-
-**Example User Stories to Add:**
-- Convert to single-page application
-- Component-based architecture
-- Angular routing and navigation
-- Services for data management
-- Reactive forms with validation
-- HTTP client for API calls
-
-### Phase 4: Java Backend
-**Technologies:** Java, JDBC, PostgreSQL/MySQL
-
-**Example User Stories to Add:**
-- RESTful API endpoints
-- Database schema design
-- CRUD operations
-- User authentication
-- Data validation on server
-- Connection pooling
-
-### Phase 5: Spring Boot
-**Technologies:** Spring Boot, Spring Data JPA, Spring Security
-
-**Example User Stories to Add:**
-- Spring Boot REST controllers
-- JPA entity relationships
-- Spring Security authentication
-- JWT token management
-- Exception handling
-- API documentation (Swagger)
-
-### Phase 6: Cloud Deployment
-**Technologies:** AWS/Azure, Docker, CI/CD
-
-**Example User Stories to Add:**
-- Containerize application
-- Deploy to cloud platform
-- Set up CI/CD pipeline
-- Configure environment variables
-- Implement logging and monitoring
+- Database schema design and setup
+- JDBC connection and configuration
+- DAO (Data Access Object) pattern implementation
+- CRUD operations for all entities
+- User authentication (login/register)
+- Input validation and error handling
+- Menu-driven console OR Servlet-based web integration
 
 ---
 
-## Architecture Ready for Growth
+### Project 2 Requirements (Week 11)
 
-### Frontend Structure (Phase 1)
+#### Spring Backend (Week 7-8)
+**Technologies:** Spring Boot, Spring JPA
+
+**Example User Stories to Add:**
+- Migrate JDBC to Spring Data JPA
+- Create REST API endpoints
+- JPA entity relationships and mappings
+- Service layer implementation
+- Exception handling with @ControllerAdvice
+- API documentation (Swagger/OpenAPI)
+
+#### Angular Frontend (Week 9-10)
+**Technologies:** Angular, TypeScript
+
+**Example User Stories to Add:**
+- Convert static HTML to Angular SPA
+- Component-based architecture
+- Angular routing and navigation
+- Services for HTTP API calls
+- Reactive forms with validation
+- State management
+
+---
+
+### Project 3 Requirements (Week 13)
+
+#### Cloud & DevOps (Week 12)
+**Technologies:** Docker, Kubernetes, GCP
+
+**Example User Stories to Add:**
+- Dockerize frontend application
+- Dockerize backend application
+- Create docker-compose for local development
+- Deploy to GCP (Cloud Run or GKE)
+- Configure Cloud SQL for MySQL
+- Set up environment variables and secrets
+- Implement health checks
+- Configure logging and monitoring
+
+---
+
+## Architecture Evolution
+
+### Project 1 Structure
 ```
 project-name/
-├── index.html
-├── pages/
-├── css/
-├── images/
-└── js/
+├── frontend/              # Static HTML/CSS/Bootstrap
+│   ├── index.html
+│   ├── pages/
+│   ├── css/
+│   └── images/
+├── backend/               # Java application
+│   ├── src/
+│   │   ├── main/java/
+│   │   │   ├── model/
+│   │   │   ├── dao/
+│   │   │   ├── service/
+│   │   │   └── util/
+│   │   └── resources/
+│   └── pom.xml
+├── database/
+│   └── schema.sql
+└── README.md
 ```
 
-### Full Stack Structure (Phase 4+)
+### Project 2 Structure
 ```
 project-name/
-├── frontend/          # Angular application
+├── frontend/              # Angular application
 │   ├── src/
 │   │   ├── app/
 │   │   │   ├── components/
 │   │   │   ├── services/
-│   │   │   └── models/
+│   │   │   ├── models/
+│   │   │   └── guards/
 │   │   └── assets/
+│   ├── angular.json
 │   └── package.json
-├── backend/           # Spring Boot application
+├── backend/               # Spring Boot application
 │   ├── src/
 │   │   ├── main/
 │   │   │   ├── java/
 │   │   │   │   ├── controller/
 │   │   │   │   ├── service/
 │   │   │   │   ├── repository/
-│   │   │   │   └── model/
+│   │   │   │   ├── entity/
+│   │   │   │   └── dto/
 │   │   │   └── resources/
+│   │   │       └── application.properties
 │   │   └── test/
 │   └── pom.xml
 └── README.md
 ```
 
-### Data Attributes for Future JavaScript
-All UI elements include data attributes for easy JavaScript integration:
+### Project 3 Structure (Cloud-Ready)
+```
+project-name/
+├── frontend/
+│   ├── src/
+│   ├── Dockerfile
+│   └── nginx.conf
+├── backend/
+│   ├── src/
+│   ├── Dockerfile
+│   └── pom.xml
+├── k8s/                   # Kubernetes manifests
+│   ├── frontend-deployment.yaml
+│   ├── backend-deployment.yaml
+│   ├── services.yaml
+│   └── ingress.yaml
+├── docker-compose.yml     # Local development
+├── cloudbuild.yaml        # GCP CI/CD
+└── README.md
+```
+
+### Data Attributes for Angular Integration
+All UI elements include data attributes for easy Angular migration:
 ```html
 <div class="product-card" data-product-id="123" data-category="electronics">
 <button class="add-to-cart" data-action="add" data-product="123">
@@ -398,85 +494,114 @@ All UI elements include data attributes for easy JavaScript integration:
 
 ## Evaluation Criteria
 
-### Phase 1: UI Development
+### Project 1 (Week 6): Java + MySQL + JDBC
 
 | Criteria | Weight |
 |----------|--------|
-| **Functionality** - All features implemented | 25% |
-| **Code Quality** - Clean, semantic, valid HTML/CSS | 20% |
-| **Responsiveness** - Works on all device sizes | 20% |
-| **Git Workflow** - Proper branching, PRs, commits | 20% |
-| **Collaboration** - Issues, reviews, team communication | 15% |
+| **UI Implementation** - All HTML/CSS features complete | 20% |
+| **Database Design** - Proper schema, relationships | 15% |
+| **JDBC Implementation** - DAO pattern, CRUD operations | 20% |
+| **Business Logic** - Service layer, validation | 15% |
+| **Code Quality** - Clean, organized, follows conventions | 10% |
+| **Git Workflow** - Branching, PRs, commits, issues | 10% |
+| **Collaboration** - Team communication, code reviews | 5% |
+| **Presentation** - Demo and explanation | 5% |
 
-### Phase 2-3: Frontend (JavaScript/Angular)
-
-| Criteria | Weight |
-|----------|--------|
-| **Functionality** - All features working correctly | 25% |
-| **Code Quality** - Clean, modular, well-structured code | 20% |
-| **User Experience** - Smooth interactions, validation | 15% |
-| **Testing** - Unit tests, component tests | 15% |
-| **Git Workflow** - Branching, PRs, code reviews | 15% |
-| **Collaboration** - Team communication, documentation | 10% |
-
-### Phase 4-5: Full Stack (Java/Spring)
+### Project 2 (Week 11): Spring Boot + Angular
 
 | Criteria | Weight |
 |----------|--------|
-| **Functionality** - Frontend + Backend integration | 20% |
-| **API Design** - RESTful principles, proper endpoints | 15% |
-| **Database Design** - Schema, relationships, queries | 15% |
-| **Security** - Authentication, authorization, validation | 15% |
-| **Testing** - Unit, integration, API tests | 15% |
-| **Code Quality** - Clean architecture, SOLID principles | 10% |
-| **Git Workflow & Collaboration** | 10% |
+| **Angular Frontend** - Components, routing, services | 20% |
+| **Spring Boot Backend** - REST APIs, JPA entities | 20% |
+| **Integration** - Frontend-backend communication | 15% |
+| **Code Quality** - Clean architecture, best practices | 15% |
+| **Testing** - Unit tests, API tests | 10% |
+| **Git Workflow** - Branching, PRs, code reviews | 10% |
+| **Collaboration & Documentation** | 5% |
+| **Presentation** - Demo and explanation | 5% |
 
-### Phase 6: Deployment
+### Project 3 / Final (Week 13): Full Stack + Cloud
 
 | Criteria | Weight |
 |----------|--------|
-| **Deployment** - Successfully deployed and accessible | 30% |
-| **CI/CD Pipeline** - Automated build and deploy | 25% |
-| **Documentation** - README, API docs, setup guide | 20% |
-| **Monitoring** - Logging, error tracking | 15% |
-| **Presentation** - Demo and explanation | 10% |
+| **Complete Application** - All features working end-to-end | 20% |
+| **Containerization** - Docker setup, docker-compose | 15% |
+| **Cloud Deployment** - GCP deployment, Cloud SQL | 20% |
+| **DevOps** - CI/CD, environment configuration | 15% |
+| **Documentation** - README, API docs, setup guide | 10% |
+| **Code Quality** - Production-ready code | 10% |
+| **Presentation** - Final demo, architecture explanation | 10% |
 
 ---
 
 ## Getting Started
 
-### Phase 1 (Current)
+### Week 1-2: UI Foundation
 
 1. **Form your team** of 4 members
 2. **Choose a project** from the list above
 3. **Create a GitHub repository** with proper setup
-4. **Set up the project board** with issues for all 12 Phase 1 features
+4. **Set up the project board** with issues for all 12 UI features
 5. **Assign features** to team members (3 each)
 6. **Start Sprint 1** - Begin with setup and core structure
 7. **Daily standups** - Communicate progress and blockers
-8. **Submit** - Final PR to main when all Phase 1 features complete
+8. **Complete UI** - All HTML/CSS/Bootstrap features by end of Week 2
 
-### Future Phases
+### Week 3-5: Java Backend (Building to Project 1)
 
-As you learn new technologies:
+1. **Facilitator/Mentor adds** Java/JDBC user stories to project documents
+2. **Create new issues** in your repository with `java-jdbc` label
+3. **Design database schema** - ERD and SQL scripts
+4. **Implement DAO layer** - JDBC operations for all entities
+5. **Build service layer** - Business logic and validation
+6. **Integrate** - Connect UI forms to backend (Servlets or console)
+7. **Test thoroughly** - Prepare for Week 6 presentation
 
-1. **Product Owner (Trainer)** will add new user stories to each project document
-2. **Create new issues** in your repository for the new phase
-3. **Label issues** with the appropriate phase tag
-4. **Continue iterating** on the same codebase
-5. **Maintain git history** - Your project grows organically with commits
+### Week 7-10: Spring + Angular (Building to Project 2)
+
+1. **Facilitator/Mentor adds** Spring and Angular user stories
+2. **Migrate to Spring Boot** - Replace JDBC with Spring Data JPA
+3. **Build REST APIs** - Expose endpoints for all operations
+4. **Convert to Angular** - Transform static HTML to SPA
+5. **Integrate** - Connect Angular frontend to Spring backend
+6. **Test and refine** - Prepare for Week 11 presentation
+
+### Week 12: Cloud Deployment (Building to Project 3)
+
+1. **Facilitator/Mentor adds** DevOps user stories
+2. **Containerize** - Create Dockerfiles for frontend and backend
+3. **Deploy to GCP** - Cloud Run or GKE with Cloud SQL
+4. **Configure CI/CD** - Automate build and deployment
+5. **Final polish** - Prepare for Week 13 final demo
 
 ---
 
-## For Trainers: Adding New Phases
+## For Facilitators/Mentors: Adding User Stories by Phase
 
-When introducing a new technology phase:
+### Before Week 3 (Java/JDBC Phase)
+Add to each project file:
+```markdown
+## Phase 2: Java Backend User Stories (Week 3-5)
 
-1. Add a new section to each project file: `## Phase X: [Technology] User Stories`
-2. Include 8-12 new user stories per project appropriate to the technology
-3. Update this README with any new technical requirements
-4. Announce the new phase to teams and have them create issues
+### Member A - [2-3 stories related to their UI features]
+### Member B - [2-3 stories related to their UI features]
+### Member C - [2-3 stories related to their UI features]
+### Member D - [2-3 stories related to their UI features]
+```
+
+### Before Week 7 (Spring Phase)
+Add to each project file:
+```markdown
+## Phase 3: Spring Boot User Stories (Week 7-8)
+## Phase 4: Angular User Stories (Week 9-10)
+```
+
+### Before Week 12 (DevOps Phase)
+Add to each project file:
+```markdown
+## Phase 5: Cloud Deployment User Stories (Week 12)
+```
 
 ---
 
-Good luck and happy coding! Remember, this project will grow with you throughout the training program.
+Good luck and happy coding! Remember, this project will grow with you throughout the 13-week training program, culminating in a fully deployed full-stack application.
