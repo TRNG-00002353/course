@@ -384,3 +384,149 @@ Use a different format - description list:
 
 ## Validation
 Your HTML should pass the W3C Validator without errors.
+
+---
+
+## Progressive Enhancement Versions
+
+Complete this exercise in 3 versions to demonstrate progressive enhancement:
+
+### Version 1: Raw HTML
+**File:** `restaurant-menu-v1.html`
+
+Build the restaurant menu using only semantic HTML5 - no styling.
+
+**Focus on:**
+- Proper use of lists (ul, ol, dl)
+- Table for wine list
+- Form for reservations
+- Semantic elements (article, section, aside, address)
+- Abbreviations for dietary symbols
+
+**Expected output:** A functional but unstyled menu page with working reservation form.
+
+---
+
+### Version 2: HTML + CSS3
+**Files:** `restaurant-menu-v2.html`, `restaurant-menu-v2.css`
+
+Enhance Version 1 with custom CSS3 styling.
+
+**Add these CSS features:**
+- Elegant typography (Google Fonts)
+- Two-column menu layout with CSS Grid
+- Price alignment with flexbox and dotted leader
+- Dietary badge styling
+- Card layout for menu sections
+- Hover effects on menu items
+- Responsive single column on mobile
+
+**CSS concepts to demonstrate:**
+```css
+/* Example CSS features to use */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display&display=swap');
+body { font-family: 'Playfair Display', serif; }
+
+.menu-item {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dotted #ccc;
+}
+.menu-item .name { flex: 1; }
+.menu-item .price { font-weight: bold; }
+
+.dietary-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+.dietary-v { background-color: #28a745; color: white; }
+.dietary-gf { background-color: #ffc107; }
+```
+
+---
+
+### Version 3: HTML + Bootstrap 5
+**File:** `restaurant-menu-v3.html`
+
+Rebuild using Bootstrap 5 framework.
+
+**Use these Bootstrap components:**
+- Card component for menu sections
+- List group for menu items
+- Badge component for dietary info and prices
+- Table classes for wine list
+- Form classes for reservation
+- Offcanvas for mobile menu (bonus)
+- Grid system for layout
+
+**Example Bootstrap menu:**
+```html
+<div class="card mb-4">
+    <div class="card-header bg-dark text-white">
+        <h2 class="h5 mb-0">Appetizers</h2>
+    </div>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto">
+                <div class="fw-bold">Classic Bruschetta</div>
+                <small class="text-muted">Fresh tomatoes, basil, garlic on toasted ciabatta</small>
+                <span class="badge bg-success">V</span>
+            </div>
+            <span class="badge bg-primary rounded-pill">$12.99</span>
+        </li>
+    </ul>
+</div>
+
+<!-- Reservation Form -->
+<form class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label">Name</label>
+        <input type="text" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+        <label class="form-label">Date</label>
+        <input type="date" class="form-control" required>
+    </div>
+</form>
+```
+
+---
+
+## Submission
+
+### Required Files
+| File | Description |
+|------|-------------|
+| `restaurant-menu-v1.html` | Raw HTML version |
+| `restaurant-menu-v2.html` | CSS3 enhanced version |
+| `restaurant-menu-v2.css` | CSS3 stylesheet |
+| `restaurant-menu-v3.html` | Bootstrap version |
+
+### Folder Structure
+```
+your-repo/
+└── 04-html/
+    ├── restaurant-menu-v1.html
+    ├── restaurant-menu-v2.html
+    ├── restaurant-menu-v2.css
+    └── restaurant-menu-v3.html
+```
+
+### Evaluation Criteria
+| Criteria | Points |
+|----------|--------|
+| **Version 1 (Raw HTML)** | **30** |
+| List types correct | 10 |
+| Semantic elements | 10 |
+| Form functional | 10 |
+| **Version 2 (CSS3)** | **35** |
+| Typography & layout | 15 |
+| Menu item styling | 10 |
+| Responsive design | 10 |
+| **Version 3 (Bootstrap)** | **35** |
+| Bootstrap components | 15 |
+| Cards/List groups | 10 |
+| Professional appearance | 10 |
+| **Total** | **100** |

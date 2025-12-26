@@ -236,3 +236,121 @@ Use these HTML5 form attributes:
 
 ## Validation
 Your HTML should pass the W3C Validator without errors.
+
+---
+
+## Progressive Enhancement Versions
+
+Complete this exercise in 3 versions to demonstrate progressive enhancement:
+
+### Version 1: Raw HTML
+**File:** `survey-form-v1.html`
+
+Build the survey form using only semantic HTML5 - no styling.
+
+**Focus on:**
+- Proper form structure (fieldset, legend)
+- All input types (text, email, radio, checkbox, select, range, textarea)
+- HTML5 validation attributes (required, pattern, min, max)
+- Accessibility (labels, aria attributes)
+
+**Expected output:** A functional but unstyled form with native browser validation.
+
+---
+
+### Version 2: HTML + CSS3
+**Files:** `survey-form-v2.html`, `survey-form-v2.css`
+
+Enhance Version 1 with custom CSS3 styling.
+
+**Add these CSS features:**
+- Form layout with CSS Grid or Flexbox
+- Custom styled inputs and focus states
+- Custom radio buttons and checkboxes
+- Range slider styling
+- Validation state styling (:valid, :invalid)
+- Responsive form layout
+
+**CSS concepts to demonstrate:**
+```css
+/* Example CSS features to use */
+.form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+input:focus { outline: 2px solid var(--primary-color); }
+input:invalid { border-color: #dc3545; }
+input:valid { border-color: #28a745; }
+input[type="range"] { -webkit-appearance: none; }
+/* Custom checkbox styling */
+input[type="checkbox"] { appearance: none; /* custom styles */ }
+```
+
+---
+
+### Version 3: HTML + Bootstrap 5
+**File:** `survey-form-v3.html`
+
+Rebuild using Bootstrap 5 framework.
+
+**Use these Bootstrap components:**
+- Form classes (form-control, form-label, form-check)
+- Form layout (row, col, mb-3)
+- Input groups
+- Floating labels (bonus)
+- Form validation classes (was-validated, is-valid, is-invalid)
+- Button styles
+
+**Example Bootstrap form:**
+```html
+<form class="needs-validation" novalidate>
+    <div class="mb-3">
+        <label for="name" class="form-label">Full Name</label>
+        <input type="text" class="form-control" id="name" required>
+        <div class="invalid-feedback">Please enter your name.</div>
+    </div>
+    <div class="mb-3">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="terms">
+            <label class="form-check-label" for="terms">I agree to terms</label>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+```
+
+---
+
+## Submission
+
+### Required Files
+| File | Description |
+|------|-------------|
+| `survey-form-v1.html` | Raw HTML version |
+| `survey-form-v2.html` | CSS3 enhanced version |
+| `survey-form-v2.css` | CSS3 stylesheet |
+| `survey-form-v3.html` | Bootstrap version |
+
+### Folder Structure
+```
+your-repo/
+└── 04-html/
+    ├── survey-form-v1.html
+    ├── survey-form-v2.html
+    ├── survey-form-v2.css
+    └── survey-form-v3.html
+```
+
+### Evaluation Criteria
+| Criteria | Points |
+|----------|--------|
+| **Version 1 (Raw HTML)** | **30** |
+| Form structure correct | 10 |
+| All input types used | 10 |
+| Accessibility (labels, aria) | 10 |
+| **Version 2 (CSS3)** | **35** |
+| Custom input styling | 15 |
+| Validation states | 10 |
+| Responsive layout | 10 |
+| **Version 3 (Bootstrap)** | **35** |
+| Bootstrap form classes | 15 |
+| Validation feedback | 10 |
+| Layout and spacing | 10 |
+| **Total** | **100** |

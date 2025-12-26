@@ -108,3 +108,128 @@ Add at least 8 employees with varied data:
 
 ## Validation
 Your HTML should pass the W3C Validator without errors.
+
+---
+
+## Progressive Enhancement Versions
+
+Complete this exercise in 3 versions to demonstrate progressive enhancement:
+
+### Version 1: Raw HTML
+**File:** `employee-table-v1.html`
+
+Build the employee table using only semantic HTML5 - no styling.
+
+**Focus on:**
+- Proper table structure (thead, tbody, tfoot)
+- Scope attributes for accessibility
+- Data attributes for filtering hooks
+- Semantic elements for page layout
+
+**Expected output:** A functional but unstyled table.
+
+---
+
+### Version 2: HTML + CSS3
+**Files:** `employee-table-v2.html`, `employee-table-v2.css`
+
+Enhance Version 1 with custom CSS3 styling.
+
+**Add these CSS features:**
+- Table styling (borders, striped rows, hover effects)
+- Sticky table header
+- Status badges with different colors
+- Responsive table (horizontal scroll on mobile)
+- Avatar image styling (rounded)
+- Custom scrollbar styling
+
+**CSS concepts to demonstrate:**
+```css
+/* Example CSS features to use */
+table { border-collapse: collapse; width: 100%; }
+thead { position: sticky; top: 0; }
+tr:nth-child(even) { background-color: #f8f9fa; }
+tr:hover { background-color: #e9ecef; }
+.status-active { background-color: #28a745; color: white; }
+@media (max-width: 768px) {
+    .table-responsive { overflow-x: auto; }
+}
+```
+
+---
+
+### Version 3: HTML + Bootstrap 5
+**File:** `employee-table-v3.html`
+
+Rebuild using Bootstrap 5 framework.
+
+**Use these Bootstrap components:**
+- Table classes (table, table-striped, table-hover, table-bordered)
+- Table responsive wrapper
+- Badge component for status
+- Avatar with rounded-circle class
+- Button groups for actions
+- Pagination component (bonus)
+
+**Example Bootstrap table:**
+```html
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Name</th>
+                <!-- ... -->
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>E001</td>
+                <td>
+                    <img src="avatar.jpg" class="rounded-circle" width="40">
+                    John Doe
+                </td>
+                <td><span class="badge bg-success">Active</span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+```
+
+---
+
+## Submission
+
+### Required Files
+| File | Description |
+|------|-------------|
+| `employee-table-v1.html` | Raw HTML version |
+| `employee-table-v2.html` | CSS3 enhanced version |
+| `employee-table-v2.css` | CSS3 stylesheet |
+| `employee-table-v3.html` | Bootstrap version |
+
+### Folder Structure
+```
+your-repo/
+└── 04-html/
+    ├── employee-table-v1.html
+    ├── employee-table-v2.html
+    ├── employee-table-v2.css
+    └── employee-table-v3.html
+```
+
+### Evaluation Criteria
+| Criteria | Points |
+|----------|--------|
+| **Version 1 (Raw HTML)** | **30** |
+| Table structure correct | 15 |
+| Accessibility (scope, aria) | 15 |
+| **Version 2 (CSS3)** | **35** |
+| Table styling & hover | 15 |
+| Responsive design | 10 |
+| Status badges styled | 10 |
+| **Version 3 (Bootstrap)** | **35** |
+| Bootstrap table classes | 15 |
+| Components used correctly | 10 |
+| Responsive wrapper | 10 |
+| **Total** | **100** |

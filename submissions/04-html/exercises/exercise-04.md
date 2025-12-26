@@ -239,6 +239,131 @@ Include examples of embedded content:
 ## Validation
 Your HTML should pass the W3C Validator without errors.
 
+---
+
+## Progressive Enhancement Versions
+
+Complete this exercise in 3 versions to demonstrate progressive enhancement:
+
+### Version 1: Raw HTML
+**File:** `media-gallery-v1.html`
+
+Build the media gallery using only semantic HTML5 - no styling.
+
+**Focus on:**
+- Proper use of figure, figcaption
+- Audio and video elements with controls
+- Picture element for responsive images
+- Accessibility (alt text, captions, track elements)
+
+**Expected output:** A functional but unstyled gallery with working media players.
+
+---
+
+### Version 2: HTML + CSS3
+**Files:** `media-gallery-v2.html`, `media-gallery-v2.css`
+
+Enhance Version 1 with custom CSS3 styling.
+
+**Add these CSS features:**
+- CSS Grid gallery layout
+- Image hover effects (zoom, overlay)
+- Lightbox effect (using :target or checkbox hack)
+- Custom audio/video player styling
+- Aspect ratio boxes for media
+- Responsive grid with auto-fit
+
+**CSS concepts to demonstrate:**
+```css
+/* Example CSS features to use */
+.gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+.gallery-item { aspect-ratio: 16/9; overflow: hidden; }
+.gallery-item img { transition: transform 0.3s; }
+.gallery-item:hover img { transform: scale(1.1); }
+.overlay { opacity: 0; transition: opacity 0.3s; }
+.gallery-item:hover .overlay { opacity: 1; }
+```
+
+---
+
+### Version 3: HTML + Bootstrap 5
+**File:** `media-gallery-v3.html`
+
+Rebuild using Bootstrap 5 framework.
+
+**Use these Bootstrap components:**
+- Grid system for gallery layout
+- Card component for media items
+- Ratio classes for aspect ratios (ratio ratio-16x9)
+- Modal for lightbox functionality
+- Carousel for image slideshow
+- Nav tabs for category filtering
+
+**Example Bootstrap gallery:**
+```html
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    <div class="col">
+        <div class="card h-100">
+            <div class="ratio ratio-16x9">
+                <img src="image.jpg" class="card-img-top object-fit-cover" alt="...">
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Image Title</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for lightbox -->
+<div class="modal fade" id="lightbox">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <img src="" class="img-fluid" id="lightbox-img">
+        </div>
+    </div>
+</div>
+```
+
+---
+
+## Submission
+
+### Required Files
+| File | Description |
+|------|-------------|
+| `media-gallery-v1.html` | Raw HTML version |
+| `media-gallery-v2.html` | CSS3 enhanced version |
+| `media-gallery-v2.css` | CSS3 stylesheet |
+| `media-gallery-v3.html` | Bootstrap version |
+
+### Folder Structure
+```
+your-repo/
+└── 04-html/
+    ├── media-gallery-v1.html
+    ├── media-gallery-v2.html
+    ├── media-gallery-v2.css
+    └── media-gallery-v3.html
+```
+
+### Evaluation Criteria
+| Criteria | Points |
+|----------|--------|
+| **Version 1 (Raw HTML)** | **30** |
+| Media elements correct | 15 |
+| Accessibility (alt, captions) | 15 |
+| **Version 2 (CSS3)** | **35** |
+| Grid gallery layout | 15 |
+| Hover effects | 10 |
+| Responsive design | 10 |
+| **Version 3 (Bootstrap)** | **35** |
+| Bootstrap grid/cards | 15 |
+| Modal/Carousel used | 10 |
+| Ratio classes | 10 |
+| **Total** | **100** |
+
+---
+
 ## Resources for Sample Media
 - Images: https://picsum.photos or https://placeholder.com
 - Audio: Use any royalty-free audio or create placeholder references

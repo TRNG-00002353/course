@@ -366,3 +366,148 @@ Below the table, include detailed product cards:
 
 ## Validation
 Your HTML should pass the W3C Validator without errors.
+
+---
+
+## Progressive Enhancement Versions
+
+Complete this exercise in 3 versions to demonstrate progressive enhancement:
+
+### Version 1: Raw HTML
+**File:** `product-comparison-v1.html`
+
+Build the product comparison page using only semantic HTML5 - no styling.
+
+**Focus on:**
+- Complex table structure with proper headers
+- Scope attributes for accessibility
+- Forms with various input types
+- Details/summary for expandable content
+- Description lists for specifications
+
+**Expected output:** A functional but unstyled page with working forms and expandable sections.
+
+---
+
+### Version 2: HTML + CSS3
+**Files:** `product-comparison-v2.html`, `product-comparison-v2.css`
+
+Enhance Version 1 with custom CSS3 styling.
+
+**Add these CSS features:**
+- Sticky table header
+- Comparison highlight on hover (column highlight)
+- Price range slider styling
+- Expandable details animation
+- Product card layout with Flexbox/Grid
+- Responsive table with horizontal scroll
+- Star rating styling
+
+**CSS concepts to demonstrate:**
+```css
+/* Example CSS features to use */
+.comparison-table { border-collapse: collapse; }
+.comparison-table th { position: sticky; top: 0; }
+.comparison-table td:hover { background-color: #f0f8ff; }
+details[open] summary { font-weight: bold; }
+details[open] > *:not(summary) { animation: slideDown 0.3s; }
+.price { font-size: 1.5rem; color: #28a745; }
+.star-rating { color: #ffc107; }
+```
+
+---
+
+### Version 3: HTML + Bootstrap 5
+**File:** `product-comparison-v3.html`
+
+Rebuild using Bootstrap 5 framework.
+
+**Use these Bootstrap components:**
+- Table classes with sticky header
+- Accordion for expandable specs
+- Form controls with input groups
+- Card grid for product details
+- Badge for features (checkmark/cross)
+- Button groups for actions
+- Star rating with icons
+
+**Example Bootstrap comparison:**
+```html
+<div class="table-responsive">
+    <table class="table table-bordered align-middle">
+        <thead class="table-dark sticky-top">
+            <tr>
+                <th>Feature</th>
+                <th class="text-center">
+                    <img src="..." class="img-fluid mb-2" style="max-width: 80px;">
+                    <br>Product A
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th>Touchscreen</th>
+                <td class="text-center"><i class="bi bi-check-lg text-success"></i></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Accordion for specs -->
+<div class="accordion" id="productSpecs">
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#specs1">
+                Specifications
+            </button>
+        </h2>
+        <div id="specs1" class="accordion-collapse collapse show">
+            <div class="accordion-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Processor</dt>
+                    <dd class="col-sm-8">Apple M3 Pro</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+---
+
+## Submission
+
+### Required Files
+| File | Description |
+|------|-------------|
+| `product-comparison-v1.html` | Raw HTML version |
+| `product-comparison-v2.html` | CSS3 enhanced version |
+| `product-comparison-v2.css` | CSS3 stylesheet |
+| `product-comparison-v3.html` | Bootstrap version |
+
+### Folder Structure
+```
+your-repo/
+└── 04-html/
+    ├── product-comparison-v1.html
+    ├── product-comparison-v2.html
+    ├── product-comparison-v2.css
+    └── product-comparison-v3.html
+```
+
+### Evaluation Criteria
+| Criteria | Points |
+|----------|--------|
+| **Version 1 (Raw HTML)** | **30** |
+| Table structure correct | 10 |
+| Forms functional | 10 |
+| Details/summary works | 10 |
+| **Version 2 (CSS3)** | **35** |
+| Table styling & hover | 15 |
+| Form controls styled | 10 |
+| Responsive design | 10 |
+| **Version 3 (Bootstrap)** | **35** |
+| Bootstrap components | 15 |
+| Accordion works | 10 |
+| Professional appearance | 10 |
+| **Total** | **100** |
