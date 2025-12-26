@@ -16,8 +16,9 @@ Each project is designed for a **team of 4 members**, following Agile developmen
 | **2 (End)** | **UI REVIEW/DEMO** | **Wireframe Walkthrough** |
 | 3-5 | Java, MySQL, JDBC | Backend Development |
 | **6** | **PROJECT 1 PRESENTATION** | **Java + MySQL + JDBC** |
-| 7-8 | Spring Boot, Spring JPA | Framework Migration |
-| 9-10 | Angular, TypeScript | Frontend SPA |
+| 7-8 | Spring Boot, Spring MVC, Spring Data JPA | REST API Development |
+| **8 (End)** | **REST API REVIEW/DEMO** | **Spring Boot REST API** |
+| 9-10 | Angular, TypeScript | Frontend SPA Integration |
 | **11** | **PROJECT 2 PRESENTATION** | **Spring Boot + Angular** |
 | 12 | Docker, Kubernetes, GCP | Cloud Deployment |
 | **13** | **PROJECT 3 / FINAL DEMO** | **Full Stack + Cloud** |
@@ -44,6 +45,31 @@ The initial UI development serves as a **visual storyboard and wireframe** for t
 - [ ] Responsive on mobile, tablet, desktop
 - [ ] Follows semantic HTML best practices
 - [ ] Team demonstrates user journey walkthrough
+
+### REST API Development Phase (Week 7-8)
+
+The Spring REST API serves as the **backend foundation** for the Angular SPA:
+
+- **Purpose:** Build a complete REST API with all CRUD endpoints before Angular development
+- **Deliverable:** Fully functional REST API with Swagger documentation
+- **Review:** End of Week 8 demo to validate API design and test endpoints
+
+**What the REST API Demo Demonstrates:**
+- All REST endpoints documented in Swagger/OpenAPI
+- CRUD operations for all entities
+- Proper HTTP methods (GET, POST, PUT, DELETE)
+- Request/response DTOs
+- Exception handling with proper HTTP status codes
+- API tested with Postman or similar tool
+
+**REST API Review Criteria:**
+- [ ] All entities have CRUD endpoints
+- [ ] Swagger UI accessible and complete
+- [ ] Proper HTTP status codes returned
+- [ ] Input validation with meaningful error messages
+- [ ] Service layer separates business logic from controllers
+- [ ] Repository layer uses Spring Data JPA
+- [ ] Team demonstrates API testing walkthrough (Postman/Swagger)
 
 ---
 
@@ -101,7 +127,8 @@ The initial UI development serves as a **visual storyboard and wireframe** for t
 | *UI Review/Demo* | *Week 2 End* | | | *12+* |
 | **Java Backend** | Week 3-5 | Java, MySQL, JDBC | 3+ | 12+ |
 | *Project 1* | *Week 6* | | | *24+* |
-| **Spring Framework** | Week 7-8 | Spring Boot, Spring JPA | 3+ | 12+ |
+| **Spring REST API** | Week 7-8 | Spring Boot, MVC, Data JPA | 3+ | 12+ |
+| *REST API Review/Demo* | *Week 8 End* | | | *36+* |
 | **Angular Frontend** | Week 9-10 | Angular, TypeScript | 3+ | 12+ |
 | *Project 2* | *Week 11* | | | *48+* |
 | **Cloud Deployment** | Week 12 | Docker, K8s, GCP | 2+ | 8+ |
@@ -271,7 +298,7 @@ Set up a GitHub Project board with:
 **Technology Phase Labels:**
 - `ui` - HTML, CSS, Bootstrap (Week 1-2)
 - `java-jdbc` - Java backend with JDBC (Week 3-5)
-- `spring` - Spring Boot, Spring JPA (Week 7-8)
+- `rest-api` - Spring Boot REST API (Week 7-8)
 - `angular` - Angular SPA (Week 9-10)
 - `devops` - Docker, K8s, GCP (Week 12)
 
@@ -390,18 +417,31 @@ Before approving a PR, reviewers should verify:
 
 ---
 
-### Project 2 Requirements (Week 11)
+### REST API Interim Milestone (Week 8)
 
-#### Spring Backend (Week 7-8)
-**Technologies:** Spring Boot, Spring JPA
+#### Spring REST API (Week 7-8)
+**Technologies:** Spring Boot, Spring MVC, Spring Data JPA
 
 **Example User Stories to Add:**
-- Migrate JDBC to Spring Data JPA
-- Create REST API endpoints
+- Migrate JDBC to Spring Data JPA entities
+- Create REST controllers for all resources
+- Implement DTOs for request/response
 - JPA entity relationships and mappings
-- Service layer implementation
+- Service layer with business logic
 - Exception handling with @ControllerAdvice
+- Input validation with Bean Validation
 - API documentation (Swagger/OpenAPI)
+- API testing with Postman collection
+
+**REST API Demo Deliverables:**
+- Swagger UI with all endpoints documented
+- Postman collection for API testing
+- All CRUD operations functional
+- Proper HTTP status codes and error responses
+
+---
+
+### Project 2 Requirements (Week 11)
 
 #### Angular Frontend (Week 9-10)
 **Technologies:** Angular, TypeScript
@@ -410,9 +450,10 @@ Before approving a PR, reviewers should verify:
 - Convert static HTML to Angular SPA
 - Component-based architecture
 - Angular routing and navigation
-- Services for HTTP API calls
+- Services for HTTP API calls (consuming REST API)
 - Reactive forms with validation
 - State management
+- Integration with Spring Boot REST API
 
 ---
 
@@ -583,14 +624,25 @@ All UI elements include data attributes for easy Angular migration:
 6. **Integrate** - Connect UI forms to backend (Servlets or console)
 7. **Test thoroughly** - Prepare for Week 6 presentation
 
-### Week 7-10: Spring + Angular (Building to Project 2)
+### Week 7-8: Spring REST API (Building to REST API Demo)
 
-1. **Facilitator/Mentor adds** Spring and Angular user stories
+1. **Facilitator/Mentor adds** Spring REST API user stories
 2. **Migrate to Spring Boot** - Replace JDBC with Spring Data JPA
-3. **Build REST APIs** - Expose endpoints for all operations
-4. **Convert to Angular** - Transform static HTML to SPA
-5. **Integrate** - Connect Angular frontend to Spring backend
-6. **Test and refine** - Prepare for Week 11 presentation
+3. **Build REST Controllers** - Create endpoints for all resources
+4. **Implement DTOs** - Request/response data transfer objects
+5. **Add Swagger** - Document all API endpoints
+6. **Test with Postman** - Create collection for API testing
+7. **REST API Review/Demo** - End of Week 8 demo to validate API
+
+### Week 9-10: Angular Frontend (Building to Project 2)
+
+1. **Facilitator/Mentor adds** Angular user stories
+2. **Convert to Angular** - Transform static HTML to SPA
+3. **Create Services** - HTTP services to consume REST API
+4. **Implement Components** - Reusable UI components
+5. **Add Routing** - Navigation between views
+6. **Integrate** - Connect Angular frontend to Spring backend
+7. **Test and refine** - Prepare for Week 11 presentation
 
 ### Week 12: Cloud Deployment (Building to Project 3)
 
@@ -615,10 +667,15 @@ Add to each project file:
 ### Member D - [2-3 stories related to their UI features]
 ```
 
-### Before Week 7 (Spring Phase)
+### Before Week 7 (Spring REST API Phase)
 Add to each project file:
 ```markdown
-## Phase 3: Spring Boot User Stories (Week 7-8)
+## Phase 3: Spring REST API User Stories (Week 7-8)
+```
+
+### Before Week 9 (Angular Phase)
+Add to each project file:
+```markdown
 ## Phase 4: Angular User Stories (Week 9-10)
 ```
 
