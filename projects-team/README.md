@@ -2,9 +2,9 @@
 
 ## Overview
 
-This folder contains **10 team project requirements** designed to evolve throughout the **13-week training program**. Each project starts as a **frontend UI application** and progressively transforms into a **full-stack cloud-deployed application** across three major project milestones.
+This folder contains **11 team project requirements** designed to evolve throughout the **13-week training program**. Each project starts as a **frontend UI application** and progressively transforms into a **full-stack cloud-deployed application** across three major project milestones.
 
-Each project is designed for a **team of 4 members**, following Agile development workflows with Git collaboration, issue tracking, and code reviews.
+Each project is designed for a **team of 4 members**, following Agile development workflows with Git collaboration, issue tracking, and code reviews. **3-member versions** are also available for select projects.
 
 ---
 
@@ -140,22 +140,29 @@ The Spring REST API serves as the **backend foundation** for the Angular SPA:
 
 ## Project List
 
-| # | Project | Description | Difficulty |
-|---|---------|-------------|------------|
-| 1 | [Restaurant Website](./project-01-restaurant.md) | Fine dining restaurant with menu, reservations | Medium |
-| 2 | [E-Commerce Store](./project-02-ecommerce.md) | Online shopping platform with products, cart | Medium-High |
-| 3 | [Tech Startup Landing](./project-03-tech-startup.md) | SaaS product landing with pricing, features | Medium |
-| 4 | [Hotel/Resort Website](./project-04-hotel-resort.md) | Hospitality site with rooms, booking | Medium |
-| 5 | [Fitness Center](./project-05-fitness-center.md) | Gym website with classes, memberships | Medium |
-| 6 | [Online Magazine](./project-06-online-magazine.md) | News/blog platform with articles, categories | Medium-High |
-| 7 | [Real Estate Listing](./project-07-real-estate.md) | Property listings with search, details | Medium-High |
-| 8 | [Event/Conference](./project-08-event-conference.md) | Conference site with schedule, registration | Medium |
-| 9 | [Non-Profit Organization](./project-09-nonprofit.md) | Charity site with donations, programs | Medium |
-| 10 | [Educational Portal](./project-10-educational.md) | School/course site with catalog, admissions | Medium |
+| # | Project | Description | Difficulty | Team Size |
+|---|---------|-------------|------------|-----------|
+| 1 | [Restaurant Website](./project-01-restaurant.md) | Fine dining restaurant with menu, reservations | Medium | 4 |
+| 2 | [E-Commerce Store](./project-02-ecommerce.md) | Online shopping platform with products, cart | Medium-High | 4 |
+| 3 | [Tech Startup Landing](./project-03-tech-startup.md) | SaaS product landing with pricing, features | Medium | 4 |
+| 3* | [Tech Startup (3-Member)](./project-03-tech-startup-3members.md) | SaaS product landing (reduced scope) | Medium | 3 |
+| 4 | [Hotel/Resort Website](./project-04-hotel-resort.md) | Hospitality site with rooms, booking | Medium | 4 |
+| 5 | [Fitness Center](./project-05-fitness-center.md) | Gym website with classes, memberships | Medium | 4 |
+| 6 | [Online Magazine](./project-06-online-magazine.md) | News/blog platform with articles, categories | Medium-High | 4 |
+| 7 | [Real Estate Listing](./project-07-real-estate.md) | Property listings with search, details | Medium-High | 4 |
+| 8 | [Event/Conference](./project-08-event-conference.md) | Conference site with schedule, registration | Medium | 4 |
+| 9 | [Non-Profit Organization](./project-09-nonprofit.md) | Charity site with donations, programs | Medium | 4 |
+| 9* | [Non-Profit (3-Member)](./project-09-nonprofit-3members.md) | Charity site (reduced scope) | Medium | 3 |
+| 10 | [Educational Portal](./project-10-educational.md) | School/course site with catalog, admissions | Medium | 4 |
+| 11 | [Job Portal](./project-11-job-portal.md) | Job listings, applications, employer dashboard | Medium | 4 |
+
+> **Note:** Projects marked with * are alternative versions with reduced scope for smaller teams.
 
 ---
 
 ## Team Structure
+
+### 4-Member Teams (Standard)
 
 Each team consists of **4 members** with distinct responsibilities:
 
@@ -165,6 +172,22 @@ Each team consists of **4 members** with distinct responsibilities:
 | **Member B** | Forms & User Interaction | Contact, Booking/Registration, Newsletter |
 | **Member C** | Data Display & Tables | Listings, Comparison tables, Pricing |
 | **Member D** | Content & Media | About, Gallery, Team/Testimonials |
+
+### 3-Member Teams (Reduced Scope)
+
+For teams with **3 members**, use the 3-member project versions which have 9 features (3 per member) instead of 12:
+
+| Role | Primary Focus | Features |
+|------|---------------|----------|
+| **Member A** | Core Structure & Navigation | Home page, Header/Nav, Footer |
+| **Member B** | Forms & User Interaction | Contact, Booking/Registration, Newsletter |
+| **Member C** | Data Display, Content & Media | Listings, Pricing, About with Team |
+
+**Key differences in 3-member versions:**
+- 9 features total (vs 12 in 4-member version)
+- Member D responsibilities merged into Member C
+- Some features combined (e.g., Team profiles merged into About page)
+- Blog/Stories pages removed or merged where applicable
 
 ---
 
@@ -604,11 +627,11 @@ All UI elements include data attributes for easy Angular migration:
 
 ### Week 1-2: UI Storyboard/Wireframe Development
 
-1. **Form your team** of 4 members
-2. **Choose a project** from the list above
+1. **Form your team** of 3-4 members
+2. **Choose a project** from the list above (use 3-member version if applicable)
 3. **Create a GitHub repository** with proper setup
-4. **Set up the project board** with issues for all 12+ UI features
-5. **Assign features** to team members (minimum 3 each)
+4. **Set up the project board** with issues for all UI features (9 for 3-member, 12 for 4-member teams)
+5. **Assign features** to team members (3 features each)
 6. **Start Sprint 1** - Begin with setup and core structure
 7. **Daily standups** - Communicate progress and blockers
 8. **Complete UI Storyboard** - All pages by end of Week 2
