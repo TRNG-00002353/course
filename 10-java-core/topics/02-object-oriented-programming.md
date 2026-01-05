@@ -1103,6 +1103,382 @@ public class ModernStyle { }
 
 ---
 
+## Generics (Java 5+)
+
+Generics enable types (classes and interfaces) to be parameters when defining classes, interfaces, and methods. They provide compile-time type safety and eliminate the need for casting.
+
+### Why Generics?
+
+```java
+// Before Generics (Java 1.4 and earlier)
+List list = new ArrayList();
+list.add("Hello");
+list.add(123);                    // No compile error - risky!
+String s = (String) list.get(0);  // Must cast
+String s2 = (String) list.get(1); // ClassCastException at runtime!
+
+// With Generics
+List<String> list = new ArrayList<>();
+list.add("Hello");
+// list.add(123);                 // Compile error - caught early!
+String s = list.get(0);           // No cast needed
+```
+
+### Generic Classes
+
+```java
+// Generic class with type parameter T
+public class Box<T> {
+    private T content;
+
+    public void set(T content) {
+        this.content = content;
+    }
+
+    public T get() {
+        return content;
+    }
+}
+
+// Usage
+Box<String> stringBox = new Box<>();
+stringBox.set("Hello");
+String value = stringBox.get();  // No cast needed
+
+Box<Integer> intBox = new Box<>();
+intBox.set(42);
+Integer num = intBox.get();
+```
+
+#### Multiple Type Parameters
+
+```java
+public class Pair<K, V> {
+    private K key;
+    private V value;
+
+    public Pair(K key, V value) {
+        this.key = key;
+        this.value = value;
+    }
+
+    public K getKey() { return key; }
+    public V getValue() { return value; }
+}
+
+// Usage
+Pair<String, Integer> pair = new Pair<>("Age", 25);
+String key = pair.getKey();      // "Age"
+Integer value = pair.getValue(); // 25
+
+Pair<Integer, List<String>> complex = new Pair<>(1, List.of("a", "b"));
+```
+
+### Generic Interfaces
+
+```java
+public interface Repository<T, ID> {
+    T findById(ID id);
+    List<T> findAll();
+    void save(T entity);
+    void delete(ID id);
+}
+
+// Implementation
+public class UserRepository implements Repository<User, Long> {
+    @Override
+    public User findById(Long id) { /* ... */ }
+
+    @Override
+    public List<User> findAll() { /* ... */ }
+
+    @Override
+    public void save(User entity) { /* ... */ }
+
+    @Override
+    public void delete(Long id) { /* ... */ }
+}
+```
+
+### Generic Methods
+
+```java
+public class Utility {
+    // Generic method - type parameter before return type
+    public static <T> void printArray(T[] array) {
+        for (T element : array) {
+            System.out.println(element);
+        }
+    }
+
+    // Generic method with return type
+    public static <T> T getFirst(List<T> list) {
+        return list.isEmpty() ? null : list.get(0);
+    }
+
+    // Multiple type parameters
+    public static <K, V> V getValue(Map<K, V> map, K key) {
+        return map.get(key);
+    }
+}
+
+// Usage - type is inferred
+String[] names = {"Alice", "Bob"};
+Utility.printArray(names);
+
+Integer[] numbers = {1, 2, 3};
+Utility.printArray(numbers);
+
+String first = Utility.getFirst(List.of("a", "b", "c"));
+```
+
+### Bounded Type Parameters
+
+Restrict the types that can be used as type arguments.
+
+#### Upper Bound (extends)
+
+```java
+// T must be Number or subclass of Number
+public class NumberBox<T extends Number> {
+    private T value;
+
+    public NumberBox(T value) {
+        this.value = value;
+    }
+
+    public double getDoubleValue() {
+        return value.doubleValue();  // Can call Number methods
+    }
+}
+
+// Usage
+NumberBox<Integer> intBox = new NumberBox<>(42);
+NumberBox<Double> doubleBox = new NumberBox<>(3.14);
+// NumberBox<String> stringBox = new NumberBox<>("Hi");  // Compile error!
+
+// Method with bounded type
+public static <T extends Comparable<T>> T findMax(T a, T b) {
+    return a.compareTo(b) > 0 ? a : b;
+}
+```
+
+#### Multiple Bounds
+
+```java
+// T must extend Number AND implement Comparable
+public class SortableNumber<T extends Number & Comparable<T>> {
+    private T value;
+
+    public SortableNumber(T value) {
+        this.value = value;
+    }
+
+    public boolean isGreaterThan(SortableNumber<T> other) {
+        return this.value.compareTo(other.value) > 0;
+    }
+}
+```
+
+### Wildcards
+
+Wildcards (`?`) represent unknown types.
+
+#### Unbounded Wildcard (?)
+
+```java
+// Accepts List of any type
+public static void printList(List<?> list) {
+    for (Object element : list) {
+        System.out.println(element);
+    }
+}
+
+// Usage
+printList(List.of("a", "b"));
+printList(List.of(1, 2, 3));
+printList(List.of(new User("John")));
+```
+
+#### Upper Bounded Wildcard (? extends)
+
+```java
+// Accepts List of Number or any subclass
+public static double sumList(List<? extends Number> list) {
+    double sum = 0;
+    for (Number num : list) {
+        sum += num.doubleValue();
+    }
+    return sum;
+}
+
+// Usage
+List<Integer> integers = List.of(1, 2, 3);
+List<Double> doubles = List.of(1.5, 2.5);
+sumList(integers);  // Works
+sumList(doubles);   // Works
+```
+
+#### Lower Bounded Wildcard (? super)
+
+```java
+// Accepts List of Integer or any superclass (Number, Object)
+public static void addNumbers(List<? super Integer> list) {
+    list.add(1);
+    list.add(2);
+    list.add(3);
+}
+
+// Usage
+List<Integer> intList = new ArrayList<>();
+List<Number> numList = new ArrayList<>();
+List<Object> objList = new ArrayList<>();
+
+addNumbers(intList);  // Works
+addNumbers(numList);  // Works
+addNumbers(objList);  // Works
+```
+
+#### PECS Principle
+
+**P**roducer **E**xtends, **C**onsumer **S**uper
+
+```java
+// Producer - reads from collection, use extends
+public static void copy(List<? extends Number> source,    // Producer
+                        List<? super Number> destination) { // Consumer
+    for (Number num : source) {
+        destination.add(num);
+    }
+}
+
+// Example
+List<Integer> source = List.of(1, 2, 3);
+List<Object> dest = new ArrayList<>();
+copy(source, dest);
+```
+
+| If you want to... | Use |
+|-------------------|-----|
+| Read from collection | `? extends T` |
+| Write to collection | `? super T` |
+| Read and write | `T` (no wildcard) |
+
+### Type Erasure
+
+Java generics use type erasure - generic type information is removed at runtime.
+
+```java
+// What you write
+public class Box<T> {
+    private T value;
+    public T get() { return value; }
+}
+
+// What compiler generates (after erasure)
+public class Box {
+    private Object value;
+    public Object get() { return value; }
+}
+
+// Implications
+List<String> strings = new ArrayList<>();
+List<Integer> integers = new ArrayList<>();
+
+// At runtime, both are just ArrayList
+System.out.println(strings.getClass() == integers.getClass());  // true
+
+// Cannot do at runtime
+// if (obj instanceof List<String>) { }  // Compile error
+// T item = new T();                      // Compile error
+```
+
+### Generic Restrictions
+
+```java
+// 1. Cannot instantiate type parameter
+public class Box<T> {
+    // T item = new T();  // Error!
+
+    // Workaround: use supplier or class
+    public static <T> T create(Supplier<T> supplier) {
+        return supplier.get();
+    }
+}
+
+// 2. Cannot create arrays of parameterized types
+// List<String>[] array = new List<String>[10];  // Error!
+List<?>[] array = new List<?>[10];  // OK with wildcard
+
+// 3. Cannot use primitives as type arguments
+// List<int> nums = new ArrayList<>();  // Error!
+List<Integer> nums = new ArrayList<>();  // Use wrapper
+
+// 4. Static members cannot use class type parameters
+public class Box<T> {
+    // private static T value;  // Error!
+    private static int count;   // OK
+}
+```
+
+### Common Type Parameter Naming
+
+| Letter | Convention |
+|--------|------------|
+| `T` | Type |
+| `E` | Element (collections) |
+| `K` | Key |
+| `V` | Value |
+| `N` | Number |
+| `S, U, V` | 2nd, 3rd, 4th types |
+
+### Practical Examples
+
+```java
+// Generic Singleton Factory
+public class SingletonFactory<T> {
+    private T instance;
+
+    public synchronized T getInstance(Supplier<T> supplier) {
+        if (instance == null) {
+            instance = supplier.get();
+        }
+        return instance;
+    }
+}
+
+// Generic DAO (Data Access Object)
+public interface GenericDao<T, ID> {
+    Optional<T> findById(ID id);
+    List<T> findAll();
+    T save(T entity);
+    void deleteById(ID id);
+}
+
+// Generic Response wrapper
+public class Response<T> {
+    private T data;
+    private String message;
+    private boolean success;
+
+    public static <T> Response<T> success(T data) {
+        Response<T> response = new Response<>();
+        response.data = data;
+        response.success = true;
+        return response;
+    }
+
+    public static <T> Response<T> error(String message) {
+        Response<T> response = new Response<>();
+        response.message = message;
+        response.success = false;
+        return response;
+    }
+}
+```
+
+---
+
 ## Non-Access Modifiers
 
 Non-access modifiers provide additional properties to classes, methods, and fields beyond access control. They define behavior, state characteristics, and compile-time constraints.
@@ -2102,6 +2478,7 @@ cache.clear();
 | Abstraction | Abstract classes and interfaces hide complexity |
 | Interfaces | Contract, multiple inheritance, default/static methods (Java 8+) |
 | Marker Interfaces | Empty interfaces for type signaling (Serializable, Cloneable) |
+| Generics (Java 5+) | Type parameters, bounded types, wildcards, PECS principle |
 | Records (Java 16+) | Immutable data carriers, auto-generated methods |
 | Non-Access Modifiers | final, abstract, static, synchronized, volatile, transient, sealed |
 | equals/hashCode | Override together, important for collections |
