@@ -566,7 +566,7 @@ METASPACE
 | **Speed** | Very fast | Slower (GC) |
 | **Error** | StackOverflowError | OutOfMemoryError |
 
-> **Deep Dive:** For detailed JVM memory architecture, stack frames, and garbage collection, see [JVM Internals and Performance](./09-jvm-internals.md).
+> **Deep Dive:** For detailed JVM memory architecture, stack frames, and garbage collection, see [JVM Internals and Performance](./10-jvm-internals.md).
 
 ---
 
@@ -1114,8 +1114,8 @@ Non-access modifiers provide additional properties to classes, methods, and fiel
 | `final` | Class, Method, Variable | Prevents modification/extension |
 | `abstract` | Class, Method | Declares incomplete implementation |
 | `static` | Variable, Method, Block, Class | Belongs to class, not instance |
-| `synchronized` | Method, Block | Thread-safe access (see [Multithreading](./08-multithreading.md)) |
-| `volatile` | Variable | Thread visibility (see [Multithreading](./08-multithreading.md)) |
+| `synchronized` | Method, Block | Thread-safe access (see [Multithreading](./09-multithreading.md)) |
+| `volatile` | Variable | Thread visibility (see [Multithreading](./09-multithreading.md)) |
 | `transient` | Variable | Exclude from serialization |
 | `native` | Method | Implemented in native code |
 | `strictfp` | Class, Method | Strict floating-point |
@@ -1522,39 +1522,16 @@ Outer.Inner inner = new Outer().new Inner();           // Outer instance require
 Excludes fields from serialization.
 
 ```java
-import java.io.*;
-
 public class User implements Serializable {
-    private static final long serialVersionUID = 1L;
-
     private String username;
     private transient String password;      // Not serialized
     private transient Connection dbConn;     // Not serialized
-
-    public User(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
-
-    // After deserialization, transient fields are:
-    // - null for objects
-    // - 0 for numbers
-    // - false for booleans
-
-    // Re-initialize transient fields if needed
-    private void readObject(ObjectInputStream ois)
-            throws IOException, ClassNotFoundException {
-        ois.defaultReadObject();
-        this.password = "";  // Set default value
-    }
 }
 ```
 
-**Use transient for:**
-- Sensitive data (passwords, keys)
-- Non-serializable fields (connections, streams)
-- Cached/computed values
-- Logger instances
+**Use transient for:** sensitive data, non-serializable fields, cached values.
+
+> **Deep Dive:** For complete serialization coverage, see [File I/O and Serialization](./08-file-io-serialization.md).
 
 ---
 
@@ -1714,8 +1691,8 @@ public static double calculate(Shape shape) {
 | `final` | Cannot reassign | Cannot override | Cannot extend | Immutability |
 | `abstract` | N/A | No body | Cannot instantiate | Incomplete |
 | `static` | Class-level | Class-level | Nested only | Shared |
-| `synchronized` | N/A | Thread-safe | N/A | See [Multithreading](./08-multithreading.md) |
-| `volatile` | Thread-visible | N/A | N/A | See [Multithreading](./08-multithreading.md) |
+| `synchronized` | N/A | Thread-safe | N/A | See [Multithreading](./09-multithreading.md) |
+| `volatile` | Thread-visible | N/A | N/A | See [Multithreading](./09-multithreading.md) |
 | `transient` | Skip serialize | N/A | N/A | Exclusion |
 | `native` | N/A | Native code | N/A | JNI |
 | `strictfp` | N/A | Strict FP | Strict FP | Consistent |
@@ -1922,7 +1899,7 @@ cache.clear();
 // Don't call System.gc() - let JVM decide when to run GC
 ```
 
-> **Deep Dive:** For GC algorithms (G1, ZGC, Shenandoah), generational GC, tuning, and monitoring, see [JVM Internals and Performance](./09-jvm-internals.md).
+> **Deep Dive:** For GC algorithms (G1, ZGC, Shenandoah), generational GC, tuning, and monitoring, see [JVM Internals and Performance](./10-jvm-internals.md).
 
 ---
 

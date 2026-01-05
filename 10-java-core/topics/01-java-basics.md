@@ -166,7 +166,7 @@ The JIT (Just-In-Time) compiler converts frequently executed bytecode to native 
 
 This is why Java applications often get faster the longer they run.
 
-> **Deep Dive:** For detailed JIT examples and JVM internals, see [JVM Internals and Performance](./09-jvm-internals.md).
+> **Deep Dive:** For detailed JIT examples and JVM internals, see [JVM Internals and Performance](./10-jvm-internals.md).
 
 ---
 

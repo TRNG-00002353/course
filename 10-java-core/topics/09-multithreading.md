@@ -1027,4 +1027,4 @@ public class FutureExample {
 
 ## Next Topic
 
-This concludes the Java Core module. You now have a solid foundation in Java programming, from basics through advanced concepts like multithreading.
+Continue to [JVM Internals and Performance](./10-jvm-internals.md) to learn about JVM architecture, memory management, and garbage collection.

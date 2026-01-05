@@ -983,4 +983,4 @@ DoubleStream doubles = IntStream.range(1, 10)
 
 ## Next Topic
 
-Continue to [Multithreading](./08-multithreading.md) to learn about concurrent programming in Java.
+Continue to [File I/O and Serialization](./08-file-io-serialization.md) to learn about file handling and object serialization in Java.
