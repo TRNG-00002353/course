@@ -798,7 +798,3 @@ jstack <pid>
 | Garbage Collection | Automatic memory reclamation; generational approach |
 | GC Algorithms | Serial, Parallel, G1, ZGC - choose based on requirements |
 | Reference Types | Strong, Soft, Weak, Phantom - for advanced memory control |
-
-## Next Topic
-
-Continue to the next module or return to [Object-Oriented Programming](./02-object-oriented-programming.md) for core Java concepts.
