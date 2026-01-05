@@ -1,5 +1,14 @@
 # Design Patterns
 
+## Table of Contents
+- [SOLID Principles](#solid-principles)
+- [Creational Patterns](#creational-patterns)
+- [Structural Patterns](#structural-patterns)
+- [Behavioral Patterns](#behavioral-patterns)
+- [Summary](#summary)
+
+---
+
 ## SOLID Principles
 
 SOLID is an acronym for five design principles that make software designs more understandable, flexible, and maintainable.

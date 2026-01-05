@@ -1,5 +1,19 @@
 # Java Basics
 
+## Table of Contents
+- [What Is Java](#what-is-java)
+- [JVM, JRE, JDK](#jvm-jre-jdk)
+- [Setup JDK](#setup-jdk)
+- [Primitive Data Types](#primitive-data-types)
+- [Reference Variables](#reference-variables)
+- [Control Flow](#control-flow)
+- [Commenting](#commenting)
+- [Packages And Imports](#packages-and-imports)
+- [Date and Time API (Java 8+)](#date-and-time-api-java-8)
+- [Summary](#summary)
+
+---
+
 ## What Is Java
 
 Java is a high-level, class-based, object-oriented programming language designed to have as few implementation dependencies as possible. It was created by James Gosling at Sun Microsystems (now owned by Oracle) and released in 1995.

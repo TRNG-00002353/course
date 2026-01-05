@@ -1,5 +1,16 @@
 # JVM Internals and Performance
 
+## Table of Contents
+- [JVM Architecture](#jvm-architecture)
+- [JIT Compiler](#jit-compiler)
+- [Memory Architecture](#memory-architecture)
+- [Method Execution on the Stack](#method-execution-on-the-stack)
+- [Garbage Collection](#garbage-collection)
+- [Performance Monitoring](#performance-monitoring)
+- [Summary](#summary)
+
+---
+
 This topic covers the internal workings of the Java Virtual Machine, memory management, and performance optimization.
 
 ## JVM Architecture

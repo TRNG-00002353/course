@@ -1,5 +1,26 @@
 # Object-Oriented Programming
 
+## Table of Contents
+- [Classes And Objects](#classes-and-objects)
+- [Class Members](#class-members)
+- [Static Members](#static-members)
+- [JVM Memory Overview](#jvm-memory-overview)
+- [OOP Principles Overview](#oop-principles-overview)
+- [Encapsulation](#encapsulation)
+- [Inheritance](#inheritance)
+- [Polymorphism](#polymorphism)
+- [Abstraction](#abstraction)
+- [Interfaces](#interfaces)
+- [Marker Interfaces](#marker-interfaces)
+- [Generics (Java 5+)](#generics-java-5)
+- [Annotations (Java 5+)](#annotations-java-5)
+- [Non-Access Modifiers](#non-access-modifiers)
+- [Equality, hashCode, and equals](#equality-hashcode-and-equals)
+- [Garbage Collection](#garbage-collection)
+- [Summary](#summary)
+
+---
+
 Object-Oriented Programming (OOP) is a programming paradigm based on the concept of "objects" that contain data and code. Java is a pure OOP language where everything (except primitives) is an object.
 
 ## Classes And Objects

@@ -1,5 +1,17 @@
 # Collections Framework
 
+## Table of Contents
+- [Overview of Collections Hierarchy](#overview-of-collections-hierarchy)
+- [List Interface](#list-interface)
+- [Set Interface](#set-interface)
+- [Queue Interface](#queue-interface)
+- [Iterators](#iterators)
+- [Map Interface](#map-interface)
+- [Collections Utility Class](#collections-utility-class)
+- [Summary](#summary)
+
+---
+
 ## Overview of Collections Hierarchy
 
 The Java Collections Framework provides a unified architecture for storing and manipulating groups of objects.

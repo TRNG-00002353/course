@@ -1,5 +1,15 @@
 # Functional Programming
 
+## Table of Contents
+- [Functional Interfaces](#functional-interfaces)
+- [Lambdas](#lambdas)
+- [Method References](#method-references)
+- [Optional Class](#optional-class)
+- [Functional Programming Patterns](#functional-programming-patterns)
+- [Summary](#summary)
+
+---
+
 ## Functional Interfaces
 
 A functional interface has exactly one abstract method (SAM - Single Abstract Method). It can have multiple default or static methods.

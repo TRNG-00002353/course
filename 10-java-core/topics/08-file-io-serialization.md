@@ -1,5 +1,19 @@
 # File I/O and Serialization
 
+## Table of Contents
+- [Introduction](#introduction)
+- [File Class](#file-class)
+- [Byte Streams](#byte-streams)
+- [Character Streams](#character-streams)
+- [java.nio Package (NIO)](#javanio-package-nio)
+- [Serialization](#serialization)
+- [transient Modifier](#transient-modifier)
+- [Externalizable Interface](#externalizable-interface)
+- [Best Practices](#best-practices)
+- [Summary](#summary)
+
+---
+
 ## Introduction
 
 Java provides comprehensive APIs for file operations and object serialization through the `java.io` and `java.nio` packages.

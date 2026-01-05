@@ -1,5 +1,16 @@
 # Exception Handling
 
+## Table of Contents
+- [Exceptions Vs Errors](#exceptions-vs-errors)
+- [Handling Exceptions](#handling-exceptions)
+- [Checked Vs Unchecked Exceptions](#checked-vs-unchecked-exceptions)
+- [Custom Exceptions](#custom-exceptions)
+- [Reading Stack Traces](#reading-stack-traces)
+- [Exception Handling Best Practices](#exception-handling-best-practices)
+- [Summary](#summary)
+
+---
+
 ## Exceptions Vs Errors
 
 Understanding the difference between exceptions and errors is fundamental to proper error handling in Java.

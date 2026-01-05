@@ -1,5 +1,16 @@
 # Stream API
 
+## Table of Contents
+- [Stream Basics](#stream-basics)
+- [Intermediate Operations](#intermediate-operations)
+- [Terminal Operations](#terminal-operations)
+- [Collectors](#collectors)
+- [Parallel Streams](#parallel-streams)
+- [Primitive Streams](#primitive-streams)
+- [Summary](#summary)
+
+---
+
 ## Stream Basics
 
 The Stream API provides a functional approach to processing collections of objects.
