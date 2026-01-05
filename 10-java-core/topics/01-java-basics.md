@@ -148,117 +148,25 @@ Source Code (.java)
    Execution
 ```
 
-### JIT Compiler Benefits
+### JIT Compiler
 
-The JIT (Just-In-Time) compiler is a key component that gives Java its performance advantages:
+The JIT (Just-In-Time) compiler converts frequently executed bytecode to native machine code for better performance.
 
-| Benefit | Description |
-|---------|-------------|
-| **Adaptive Optimization** | Identifies "hot spots" (frequently executed code) and optimizes them |
-| **Method Inlining** | Replaces method calls with actual code to reduce overhead |
-| **Dead Code Elimination** | Removes code that will never be executed |
-| **Loop Optimization** | Unrolls loops and optimizes iteration patterns |
-| **Platform-Specific Code** | Generates native machine code optimized for the current CPU |
-
-**How JIT Works:**
+**How it works:**
 1. Initially, bytecode is interpreted (slower but starts immediately)
-2. JVM monitors which methods are called frequently
+2. JVM monitors which methods are called frequently ("hot spots")
 3. Hot methods are compiled to native machine code
 4. Compiled code runs much faster than interpreted bytecode
-5. JVM can reoptimize based on runtime behavior
 
-This is why Java applications often get faster the longer they run - the JIT compiler has more time to optimize.
+**Key optimizations:**
+- **Method Inlining** - Replaces method calls with actual code
+- **Loop Unrolling** - Expands small loops to reduce overhead
+- **Dead Code Elimination** - Removes unreachable code
+- **Escape Analysis** - Allocates objects on stack when possible
 
-### JIT Optimization Examples
+This is why Java applications often get faster the longer they run.
 
-#### Method Inlining
-
-JIT replaces method calls with the actual method body to eliminate call overhead.
-
-```java
-// Original code
-public int calculateTotal(int price, int quantity) {
-    return multiply(price, quantity);
-}
-
-private int multiply(int a, int b) {
-    return a * b;
-}
-
-// After JIT inlining (conceptually)
-public int calculateTotal(int price, int quantity) {
-    return price * quantity;  // Method call replaced with actual code
-}
-```
-
-**Why it helps:** Each method call has overhead (stack frame creation, parameter passing). Inlining eliminates this for frequently called small methods.
-
-#### Loop Optimization (Loop Unrolling)
-
-JIT unrolls loops to reduce iteration overhead.
-
-```java
-// Original loop
-for (int i = 0; i < 4; i++) {
-    sum += array[i];
-}
-
-// After JIT loop unrolling (conceptually)
-sum += array[0];
-sum += array[1];
-sum += array[2];
-sum += array[3];
-```
-
-**Why it helps:** Reduces loop control overhead (increment, compare, jump) for small, fixed-size loops.
-
-#### Dead Code Elimination
-
-JIT removes code that can never be reached or has no effect.
-
-```java
-// Original code
-public void process(boolean debug) {
-    int result = calculate();
-
-    if (false) {  // Dead code - never executes
-        System.out.println("Debug mode");
-    }
-
-    int unused = 100;  // Dead code - never used
-
-    return result;
-}
-
-// After JIT optimization (conceptually)
-public void process(boolean debug) {
-    int result = calculate();
-    return result;
-}
-```
-
-**Why it helps:** Removes unnecessary instructions, reducing memory usage and execution time.
-
-#### Escape Analysis
-
-JIT determines if objects can be allocated on the stack instead of the heap.
-
-```java
-// Original code
-public int sumPoints() {
-    Point p = new Point(10, 20);  // Object created
-    return p.x + p.y;
-}
-
-// After JIT escape analysis (conceptually)
-public int sumPoints() {
-    int p_x = 10;  // Object "dissolved" into local variables
-    int p_y = 20;  // Allocated on stack, not heap
-    return p_x + p_y;
-}
-```
-
-**Why it helps:** Stack allocation is faster than heap allocation and doesn't require garbage collection.
+> **Deep Dive:** For detailed JIT examples and JVM internals, see [JVM Internals and Performance](./09-jvm-internals.md).
 
 ---
 

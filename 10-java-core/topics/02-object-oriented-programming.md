@@ -516,118 +516,19 @@ public class Database {
 
 ---
 
-## JVM Memory Architecture
+## JVM Memory Overview
 
-Now that we understand classes, objects, and static members, let's examine where they live in memory.
+Now that we understand classes, objects, and static members, let's see where they live in memory.
 
-### Memory Areas Overview
+### Memory Areas
 
-```
-┌───────────────────────────────────────────────────────────────────┐
-│                        JVM Memory Structure                        │
-├───────────────────────────────────────────────────────────────────┤
-│                                                                    │
-│  ┌─────────────────────────────────────────────────────────────┐  │
-│  │                         HEAP MEMORY                          │  │
-│  │  (Shared among all threads - Objects and Instance Variables) │  │
-│  │                                                               │  │
-│  │  ┌─────────────────┐  ┌─────────────────────────────────┐   │  │
-│  │  │   Young Gen     │  │         Old Generation          │   │  │
-│  │  │  ┌─────────┐    │  │                                 │   │  │
-│  │  │  │  Eden   │    │  │   Long-lived objects            │   │  │
-│  │  │  │  Space  │    │  │                                 │   │  │
-│  │  │  ├─────────┤    │  │                                 │   │  │
-│  │  │  │   S0    │    │  │                                 │   │  │
-│  │  │  ├─────────┤    │  │                                 │   │  │
-│  │  │  │   S1    │    │  │                                 │   │  │
-│  │  │  └─────────┘    │  └─────────────────────────────────┘   │  │
-│  │  └─────────────────┘                                         │  │
-│  └─────────────────────────────────────────────────────────────┘  │
-│                                                                    │
-│  ┌─────────────────────────────────────────────────────────────┐  │
-│  │                        STACK MEMORY                          │  │
-│  │        (Thread-private - Local Variables and References)     │  │
-│  │                                                               │  │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐        │  │
-│  │  │   Thread 1   │  │   Thread 2   │  │   Thread 3   │        │  │
-│  │  │  ┌────────┐  │  │  ┌────────┐  │  │  ┌────────┐  │        │  │
-│  │  │  │ Frame  │  │  │  │ Frame  │  │  │  │ Frame  │  │        │  │
-│  │  │  │ Frame  │  │  │  │ Frame  │  │  │  │ Frame  │  │        │  │
-│  │  │  │ Frame  │  │  │  └────────┘  │  │  │ Frame  │  │        │  │
-│  │  │  └────────┘  │  │              │  │  │ Frame  │  │        │  │
-│  │  └──────────────┘  └──────────────┘  └──────────────┘        │  │
-│  └─────────────────────────────────────────────────────────────┘  │
-│                                                                    │
-│  ┌─────────────────────────────────────────────────────────────┐  │
-│  │                       METASPACE                              │  │
-│  │   (Class metadata, static variables, method bytecode)        │  │
-│  └─────────────────────────────────────────────────────────────┘  │
-└───────────────────────────────────────────────────────────────────┘
-```
+| Area | Stores | Scope |
+|------|--------|-------|
+| **Stack** | Primitives, references, method frames | Thread-private |
+| **Heap** | Objects, instance variables | Shared |
+| **Metaspace** | Class metadata, static variables | Shared |
 
-### Stack Memory
-
-The stack is a region of memory used for storing local variables and method call information. Each thread has its own private stack.
-
-| Property | Description |
-|----------|-------------|
-| **Thread-private** | Each thread has its own stack |
-| **LIFO structure** | Last In, First Out (push/pop operations) |
-| **Fixed size** | Size determined at thread creation |
-| **Fast access** | Direct memory access, no GC overhead |
-| **Stores** | Primitive values, object references, method frames |
-
-```java
-public class StackExample {
-    public void methodA() {
-        int x = 10;              // Primitive stored in stack
-        String name = "Hello";   // Reference stored in stack
-                                 // (String object in heap)
-        methodB(x);              // New stack frame created
-    }
-
-    public void methodB(int param) {
-        double result = param * 2.5;  // Stored in stack
-        int[] arr = new int[5];       // Reference in stack, array in heap
-    }
-}
-```
-
-### Heap Memory
-
-The heap is a shared memory region where all objects and their instance variables are stored.
-
-| Property | Description |
-|----------|-------------|
-| **Shared** | All threads share the same heap |
-| **Dynamic size** | Can grow/shrink at runtime |
-| **GC managed** | Garbage collector reclaims unused memory |
-| **Stores** | Objects, instance variables, arrays |
-
-```java
-public class HeapExample {
-    private String name;           // Instance variable - stored in heap with object
-    private int[] scores;
-
-    public HeapExample(String name) {
-        this.name = name;                    // String object in heap
-        this.scores = new int[]{90, 85, 88}; // Array object in heap
-    }
-}
-```
-
-### Stack vs Heap Comparison
-
-| Aspect | Stack | Heap |
-|--------|-------|------|
-| **Storage** | Primitives, references | Objects, instance variables |
-| **Scope** | Thread-private | Shared among threads |
-| **Size** | Fixed, smaller | Dynamic, larger |
-| **Speed** | Very fast | Slower (GC overhead) |
-| **Management** | Automatic (LIFO) | Garbage collected |
-| **Error** | StackOverflowError | OutOfMemoryError |
-
-### Memory Allocation Example
+### Where Data Lives
 
 ```java
 public class MemoryDemo {
@@ -637,106 +538,35 @@ public class MemoryDemo {
     public void process() {
         int localVar = 30;               // Stack
         String localRef = new String("Hello");  // Reference: Stack, Object: Heap
-        calculate(localVar);             // New stack frame
-    }
-
-    public int calculate(int param) {    // param: Stack
-        int result = param * 2;          // result: Stack
-        return result;
     }
 }
 ```
 
 ```
-STACK (Thread-1)                    HEAP
-┌─────────────────────┐            ┌─────────────────────────────┐
-│ process()           │            │   ┌─────────────────────┐   │
-│  ├─ this (ref) ────────────────► │   │   MemoryDemo object │   │
-│  ├─ localVar = 30   │            │   │  instanceVar = 10   │   │
-│  ├─ localRef (ref) ────────────► │   └─────────────────────┘   │
-├─────────────────────┤            │   String "Hello"            │
-│ calculate()         │            └─────────────────────────────┘
-│  ├─ param = 30      │
-│  ├─ result = 60     │            METASPACE
-└─────────────────────┘            ┌─────────────────────────────┐
-                                   │  staticVar = 20             │
-                                   │  Class metadata             │
-                                   └─────────────────────────────┘
+STACK                              HEAP
+┌─────────────────────┐           ┌─────────────────────────────┐
+│ process()           │           │   ┌─────────────────────┐   │
+│  ├─ localVar = 30   │           │   │   MemoryDemo object │   │
+│  ├─ localRef ───────────────►   │   │  instanceVar = 10   │   │
+│  ├─ this ───────────────────►   │   └─────────────────────┘   │
+└─────────────────────┘           │   String "Hello"            │
+                                  └─────────────────────────────┘
+METASPACE
+┌─────────────────────┐
+│  staticVar = 20     │
+│  Class metadata     │
+└─────────────────────┘
 ```
 
----
+### Stack vs Heap
 
-## Method Execution on the Stack
+| Aspect | Stack | Heap |
+|--------|-------|------|
+| **Storage** | Primitives, references | Objects |
+| **Speed** | Very fast | Slower (GC) |
+| **Error** | StackOverflowError | OutOfMemoryError |
 
-When a method is called, a new stack frame is created. When the method returns, the frame is destroyed.
-
-### Stack Frame Lifecycle
-
-```java
-public class MethodStackDemo {
-    public static void main(String[] args) {
-        int result = methodA(5);
-    }
-
-    public static int methodA(int x) {
-        int y = methodB(x + 10);
-        return y * 2;
-    }
-
-    public static int methodB(int a) {
-        return a + 5;
-    }
-}
-```
-
-**Stack evolution:**
-
-```
-Step 1: main() called          Step 2: methodA() called
-┌──────────────────┐           ┌──────────────────┐
-│      main()      │           │    methodA()     │ ← Top
-│  args, result    │           │  x=5, y=?        │
-└──────────────────┘           ├──────────────────┤
-                               │      main()      │
-                               └──────────────────┘
-
-Step 3: methodB() called       Step 4: After returns
-┌──────────────────┐           ┌──────────────────┐
-│    methodB()     │ ← Top     │      main()      │ ← Top
-│  a=15            │           │  args, result=40 │
-├──────────────────┤           └──────────────────┘
-│    methodA()     │
-├──────────────────┤
-│      main()      │
-└──────────────────┘
-```
-
-### Recursion and Stack Frames
-
-```java
-public static int factorial(int n) {
-    if (n <= 1) return 1;
-    return n * factorial(n - 1);
-}
-```
-
-**Stack during factorial(5):**
-
-```
-┌────────────────────────┐
-│ factorial(1) → returns 1│
-├────────────────────────┤
-│ factorial(2) → 2 * 1 = 2│
-├────────────────────────┤
-│ factorial(3) → 3 * 2 = 6│
-├────────────────────────┤
-│ factorial(4) → 4 * 6 = 24│
-├────────────────────────┤
-│ factorial(5) → 5 * 24 = 120│
-├────────────────────────┤
-│ main()                  │
-└────────────────────────┘
-```
+> **Deep Dive:** For detailed JVM memory architecture, stack frames, and garbage collection, see [JVM Internals and Performance](./09-jvm-internals.md).
 
 ---
 
@@ -2196,546 +2026,43 @@ System.out.println(map.get(p2));  // Should return "Value1"
 
 ## Garbage Collection
 
-Automatic memory management is one of Java's most powerful features. The Garbage Collector (GC) automatically reclaims memory occupied by objects that are no longer in use.
+The Garbage Collector (GC) automatically reclaims memory from objects that are no longer reachable.
 
-### How Garbage Collection Works
-
-The GC identifies and removes objects that are no longer reachable from any live reference in the application.
+### When Objects Become Eligible for GC
 
 ```java
 public class GCExample {
     public static void main(String[] args) {
-        // Object created - referenced by p1
         Person p1 = new Person("Alice");
-
-        // Another reference to same object
         Person p2 = p1;
 
-        // p1 no longer references object, but p2 still does
-        p1 = null;  // Object NOT eligible for GC
-
-        // Now no references exist
-        p2 = null;  // Object eligible for GC
+        p1 = null;  // Object NOT eligible - p2 still references it
+        p2 = null;  // Object eligible for GC - no references remain
     }
 }
 ```
 
-### Object Reachability
-
-An object is considered reachable if it can be accessed through a chain of references starting from a **GC Root**.
-
-**GC Roots include:**
-- Local variables in currently executing methods
-- Active Java threads
-- Static variables
-- JNI references
-
-```
-GC Roots                    Heap Objects
-┌─────────────┐
-│ Thread      │──────────► Object A ──────► Object C
-│ Stack       │                │
-└─────────────┘                ▼
-                           Object B ──────► Object D
-┌─────────────┐
-│ Static      │──────────► Object E
-│ Variables   │
-└─────────────┘
-
-Object F  ◄─────── Object G    (Unreachable - eligible for GC)
-     │
-     ▼
-Object H
-```
-
-### Making Objects Eligible for GC
-
-```java
-// 1. Nulling references
-Person p = new Person("Alice");
-p = null;  // Eligible
-
-// 2. Reassigning reference
-Person p1 = new Person("Alice");
-p1 = new Person("Bob");  // "Alice" object eligible
-
-// 3. Object out of scope
-public void method() {
-    Person local = new Person("Alice");
-}  // "Alice" object eligible when method ends
-
-// 4. Anonymous objects
-new Person("Alice").display();  // Eligible immediately after use
-
-// 5. Island of Isolation
-public class Node {
-    Node next;
-}
-
-Node a = new Node();
-Node b = new Node();
-a.next = b;
-b.next = a;  // Circular reference
-a = null;
-b = null;   // Both eligible despite circular reference!
-```
-
-### Generational Garbage Collection
-
-The JVM uses a generational approach based on the observation that most objects die young.
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                           HEAP MEMORY                                │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  ┌────────────────────────────────────────────────────────────────┐ │
-│  │                    YOUNG GENERATION                             │ │
-│  │                                                                  │ │
-│  │  ┌──────────────────────────────────────────────────────────┐  │ │
-│  │  │                     EDEN SPACE                            │  │ │
-│  │  │                                                           │  │ │
-│  │  │  • New objects allocated here                             │  │ │
-│  │  │  • Minor GC triggered when full                           │  │ │
-│  │  │  • Most objects die here (never leave Eden)               │  │ │
-│  │  │                                                           │  │ │
-│  │  └──────────────────────────────────────────────────────────┘  │ │
-│  │                                                                  │ │
-│  │  ┌───────────────────┐       ┌───────────────────┐             │ │
-│  │  │   SURVIVOR S0     │       │   SURVIVOR S1     │             │ │
-│  │  │   (From Space)    │       │   (To Space)      │             │ │
-│  │  │                   │       │                   │             │ │
-│  │  │  Objects that     │  ◄──► │  Objects copied   │             │ │
-│  │  │  survived GC      │       │  back and forth   │             │ │
-│  │  │                   │       │                   │             │ │
-│  │  └───────────────────┘       └───────────────────┘             │ │
-│  │                                                                  │ │
-│  │  After N survivals (threshold), objects promoted to Old Gen     │ │
-│  └────────────────────────────────────────────────────────────────┘ │
-│                              ↓ Promotion                             │
-│  ┌────────────────────────────────────────────────────────────────┐ │
-│  │                     OLD GENERATION (Tenured)                    │ │
-│  │                                                                  │ │
-│  │  • Long-lived objects                                           │ │
-│  │  • Major GC (Full GC) when full - more expensive                │ │
-│  │  • Large objects may be allocated directly here                 │ │
-│  │                                                                  │ │
-│  └────────────────────────────────────────────────────────────────┘ │
-│                                                                      │
-└─────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────────┐
-│                         METASPACE                                    │
-│                    (Native Memory, not Heap)                         │
-│                                                                      │
-│  • Class metadata                                                    │
-│  • Method bytecode                                                   │
-│  • Constant pool                                                     │
-│  • Grows automatically (limited by system memory)                    │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-### GC Types
-
-#### Minor GC (Young Generation GC)
-
-```java
-// Triggered when Eden space is full
-// Fast - only scans young generation
-// Uses copying algorithm
-
-// Objects flow:
-// Eden → Survivor S0/S1 → Old Generation
-
-// Example scenario:
-public void createManyObjects() {
-    for (int i = 0; i < 1000000; i++) {
-        String temp = new String("Object " + i);  // Short-lived
-        // Object dies after loop iteration
-    }
-    // Most objects collected by Minor GC
-}
-```
-
-#### Major GC (Old Generation GC)
-
-```java
-// Triggered when Old Generation is full
-// Slower - scans entire old generation
-// May cause longer pause times
-
-// Objects that survive many Minor GCs are promoted here
-public class LongLivedCache {
-    private static Map<String, Object> cache = new HashMap<>();
-
-    public static void store(String key, Object value) {
-        cache.put(key, value);  // Long-lived, goes to Old Gen
-    }
-}
-```
-
-#### Full GC
-
-```java
-// Cleans entire heap (Young + Old + Metaspace)
-// Most expensive - longest pause times
-// Triggered by:
-//   - System.gc() call
-//   - Old generation full
-//   - Metaspace full
-//   - Promotion failure
-```
-
-### GC Algorithms
-
-#### 1. Serial GC
-
-```bash
-# Single-threaded, simple, stop-the-world
-java -XX:+UseSerialGC MyApp
-
-# Best for:
-# - Small applications
-# - Single-core machines
-# - Limited memory environments
-```
-
-#### 2. Parallel GC (Throughput Collector)
-
-```bash
-# Multi-threaded, optimized for throughput
-java -XX:+UseParallelGC MyApp
-
-# Configure threads
-java -XX:ParallelGCThreads=4 MyApp
-
-# Best for:
-# - Batch processing
-# - Applications where pause time is less critical
-# - Multi-core systems
-```
-
-#### 3. G1 GC (Garbage First) - Default since Java 9
-
-```bash
-# Balanced throughput and latency
-java -XX:+UseG1GC MyApp
-
-# Set pause time goal (milliseconds)
-java -XX:MaxGCPauseMillis=200 MyApp
-
-# Best for:
-# - Large heaps (> 4GB)
-# - Applications requiring predictable pause times
-# - General-purpose use
-```
-
-**G1 GC Heap Structure:**
-
-```
-┌─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┐
-│  E  │  E  │  S  │  O  │  O  │  E  │  H  │  O  │
-├─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
-│  O  │  E  │  O  │  O  │  E  │  S  │  O  │  E  │
-├─────┼─────┼─────┼─────┼─────┼─────┼─────┼─────┤
-│  E  │  O  │  E  │  H  │  H  │  O  │  E  │  O  │
-└─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
-
-E = Eden Region       S = Survivor Region
-O = Old Region        H = Humongous (large objects)
-
-• Heap divided into equal-sized regions
-• GC can choose which regions to collect
-• Prioritizes regions with most garbage ("Garbage First")
-```
-
-#### 4. ZGC (Z Garbage Collector) - Java 11+
-
-```bash
-# Ultra-low latency (< 10ms pauses)
-java -XX:+UseZGC MyApp
-
-# Best for:
-# - Very large heaps (up to 16TB)
-# - Latency-sensitive applications
-# - Pause times must be minimal
-```
-
-#### 5. Shenandoah GC - Java 12+
-
-```bash
-# Low-latency, concurrent
-java -XX:+UseShenandoahGC MyApp
-
-# Similar to ZGC but different implementation
-# Concurrent compaction
-```
-
-### GC Algorithm Comparison
-
-| Algorithm | Pause Time | Throughput | Heap Size | Use Case |
-|-----------|-----------|------------|-----------|----------|
-| Serial | Long | Low | Small | Single-core, small apps |
-| Parallel | Medium | High | Medium | Batch processing |
-| G1 | Predictable | Medium | Large | General purpose |
-| ZGC | Very short | Medium | Very large | Low-latency critical |
-| Shenandoah | Very short | Medium | Large | Low-latency |
-
-### Monitoring and Tuning GC
-
-#### GC Logging
-
-```bash
-# Enable GC logging (Java 9+)
-java -Xlog:gc*:file=gc.log:time,uptime,level,tags MyApp
-
-# Verbose GC output
-java -Xlog:gc*=debug:file=gc.log MyApp
-
-# Example output:
-# [0.015s][info][gc] Using G1
-# [0.234s][info][gc] GC(0) Pause Young (Normal) 24M->8M(256M) 5.123ms
-# [1.567s][info][gc] GC(1) Pause Young (Normal) 32M->12M(256M) 7.456ms
-```
-
-#### Heap Configuration
-
-```bash
-# Initial and maximum heap size
-java -Xms512m -Xmx2g MyApp
-
-# Young generation size
-java -Xmn256m MyApp
-
-# Survivor ratio (Eden:Survivor)
-java -XX:SurvivorRatio=8 MyApp  # Eden is 8x each Survivor
-
-# New/Old generation ratio
-java -XX:NewRatio=2 MyApp  # Old is 2x Young
-
-# Metaspace size
-java -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=256m MyApp
-```
-
-#### Analyzing GC Logs
-
-```
-[GC (Allocation Failure) [PSYoungGen: 65536K->10752K(76288K)]
-    65536K->15840K(251392K), 0.0156712 secs]
-    [Times: user=0.05 sys=0.01, real=0.02 secs]
-
-Explanation:
-- PSYoungGen: Parallel Scavenge Young Generation
-- 65536K->10752K: Young gen before -> after
-- (76288K): Total young gen capacity
-- 65536K->15840K: Total heap before -> after
-- (251392K): Total heap capacity
-- 0.0156712 secs: GC pause time
-```
-
-### finalize() Method (Deprecated)
-
-```java
-// Deprecated since Java 9 - DO NOT USE
-public class Resource {
-    @Override
-    protected void finalize() throws Throwable {
-        try {
-            // Cleanup code (unreliable!)
-            System.out.println("Finalize called");
-        } finally {
-            super.finalize();
-        }
-    }
-}
-
-// Problems with finalize():
-// 1. No guarantee when (or if) it will be called
-// 2. Can resurrect objects
-// 3. Adds GC overhead
-// 4. Not thread-safe
-// 5. May cause memory leaks
-```
-
-### Modern Resource Management
-
-```java
-// Better: Use try-with-resources (Java 7+)
-public class Resource implements AutoCloseable {
-    @Override
-    public void close() {
-        System.out.println("Resource closed");
-    }
-}
-
-// Usage
-try (Resource r = new Resource()) {
-    // Use resource
-}  // close() automatically called
-
-// Multiple resources
-try (FileInputStream fis = new FileInputStream("input.txt");
-     FileOutputStream fos = new FileOutputStream("output.txt")) {
-    // Use both streams
-}  // Both closed automatically (in reverse order)
-```
-
-### Memory Leaks in Java
-
-Despite GC, memory leaks can still occur:
-
-```java
-// 1. Static collections that grow indefinitely
-public class Cache {
-    private static Map<String, Object> cache = new HashMap<>();
-
-    public void add(String key, Object value) {
-        cache.put(key, value);  // Never removed!
-    }
-
-    // Fix: Use bounded cache or weak references
-    private static Map<String, Object> boundedCache =
-        new LinkedHashMap<>(100, 0.75f, true) {
-            @Override
-            protected boolean removeEldestEntry(Map.Entry eldest) {
-                return size() > 100;  // Remove oldest when > 100
-            }
-        };
-}
-
-// 2. Unclosed resources
-public void readFile() {
-    FileReader reader = new FileReader("file.txt");
-    // If exception occurs, reader never closed
-}
-
-// Fix: try-with-resources
-public void readFile() throws IOException {
-    try (FileReader reader = new FileReader("file.txt")) {
-        // Use reader
-    }
-}
-
-// 3. Listeners not removed
-public class Observable {
-    private List<Listener> listeners = new ArrayList<>();
-
-    public void addListener(Listener l) {
-        listeners.add(l);
-    }
-
-    // Missing: removeListener method or WeakReference
-}
-
-// 4. Inner class holding reference to outer class
-public class Outer {
-    private byte[] largeData = new byte[1000000];
-
-    public Runnable getTask() {
-        return new Runnable() {  // Holds reference to Outer
-            public void run() {
-                System.out.println("Task");
-            }
-        };
-    }
-
-    // Fix: Use static inner class or lambda
-    public Runnable getTaskFixed() {
-        return () -> System.out.println("Task");  // No outer reference
-    }
-}
-
-// 5. String.intern() abuse
-public void processStrings(List<String> strings) {
-    for (String s : strings) {
-        String interned = s.intern();  // Added to string pool forever
-    }
-}
-```
-
-### Weak References
-
-Use weak references for caches and listeners:
-
-```java
-import java.lang.ref.WeakReference;
-import java.util.WeakHashMap;
-
-// WeakReference - collected when no strong references exist
-WeakReference<ExpensiveObject> weakRef =
-    new WeakReference<>(new ExpensiveObject());
-
-ExpensiveObject obj = weakRef.get();  // May return null
-if (obj != null) {
-    // Use object
-}
-
-// WeakHashMap - entries removed when keys are weakly reachable
-Map<Key, Value> cache = new WeakHashMap<>();
-cache.put(new Key("temp"), new Value());
-// Entry automatically removed when Key has no strong references
-```
-
-### Reference Types Comparison
-
-```java
-// 1. Strong Reference (default)
-Object strong = new Object();  // Never collected while referenced
-
-// 2. Weak Reference
-WeakReference<Object> weak = new WeakReference<>(new Object());
-// Collected at next GC if no strong references
-
-// 3. Soft Reference
-SoftReference<Object> soft = new SoftReference<>(new Object());
-// Collected only when memory is low
-
-// 4. Phantom Reference
-PhantomReference<Object> phantom =
-    new PhantomReference<>(new Object(), referenceQueue);
-// Used for cleanup, object already finalized
-
-// Reachability order:
-// Strong > Soft > Weak > Phantom > Unreachable
-```
+**Ways to make objects eligible:**
+- Setting reference to `null`
+- Reassigning reference to another object
+- Object goes out of scope (local variables when method ends)
+- Anonymous objects after use
 
 ### Best Practices
 
-1. **Let GC do its job**: Don't call `System.gc()` - JVM knows best
-2. **Size heap appropriately**: Not too small (frequent GC), not too large (long pauses)
-3. **Use try-with-resources**: For all closeable resources
-4. **Avoid finalize()**: Use `Cleaner` (Java 9+) if needed
-5. **Profile your application**: Use tools like VisualVM, JConsole, or async-profiler
-6. **Choose the right GC**: Match GC algorithm to your requirements
-7. **Monitor GC logs**: Watch for frequent Full GCs or long pauses
-8. **Avoid memory leaks**: Clear caches, remove listeners, close resources
-9. **Use weak references for caches**: Let GC manage cache eviction
-10. **Minimize object creation**: Reuse objects when possible
+```java
+// Use try-with-resources for automatic cleanup
+try (FileInputStream fis = new FileInputStream("file.txt")) {
+    // Use resource
+}  // Automatically closed
 
-### GC Diagnostic Commands
+// Avoid memory leaks - clear collections when done
+cache.clear();
 
-```bash
-# Print GC details before termination
-java -XX:+PrintGCDetails -XX:+PrintGCDateStamps MyApp
-
-# Heap dump on OutOfMemoryError
-java -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/heap.hprof MyApp
-
-# Enable NMT (Native Memory Tracking)
-java -XX:NativeMemoryTracking=summary MyApp
-
-# JConsole for monitoring
-jconsole
-
-# VisualVM for profiling
-jvisualvm
-
-# Get heap histogram
-jmap -histo <pid>
-
-# Force heap dump
-jmap -dump:format=b,file=heap.hprof <pid>
+// Don't call System.gc() - let JVM decide when to run GC
 ```
+
+> **Deep Dive:** For GC algorithms (G1, ZGC, Shenandoah), generational GC, tuning, and monitoring, see [JVM Internals and Performance](./09-jvm-internals.md).
 
 ---
 
