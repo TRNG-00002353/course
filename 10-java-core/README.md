@@ -30,20 +30,38 @@ This module is organized into subdirectories:
 ### 3. [Exception Handling](./topics/03-exception-handling.md)
 - Checked/Unchecked exceptions, try-catch-finally, Custom exceptions
 
-### 4. [Collections Framework](./topics/04-collections-framework.md)
-- List, Set, Queue, Map interfaces and implementations
+### 4. [Design Patterns](./topics/04-design-patterns.md)
+- SOLID principles, Singleton, Factory, Strategy, Observer
 
-### 5. [Multithreading](./topics/05-multithreading.md)
-- Thread class, Runnable, Synchronization, Concurrency
+### 5. [Collections Framework](./topics/05-collections-framework.md)
+- List, Set, Queue, Map interfaces and implementations
 
 ### 6. [Functional Programming](./topics/06-functional-programming.md)
 - Lambdas, Functional interfaces, Method references, Optional
 
-### 7. [Stream API](./topics/07-stream-api.md)
-- Stream pipeline, Intermediate/Terminal operations, Collectors
+### 7. [Java APIs](./topics/07-java-apis.md)
+- Stream API, Date/Time API, Reflection API, Collectors
 
-### 8. [Design Patterns](./topics/08-design-patterns.md)
-- SOLID principles, Singleton, Factory, Strategy, Observer
+### 8. [File I/O and Serialization](./topics/08-file-io-serialization.md)
+- File class, FileReader, FileWriter, BufferedReader, Serialization
+
+### 9. [Multithreading](./topics/09-multithreading.md)
+- Thread class, Runnable, Synchronization, Concurrency, Deadlock
+
+### 10. [JVM Internals](./topics/10-jvm-internals.md)
+- JVM architecture, Class loading, Memory management, Garbage Collection
+
+### 11. [Networking](./topics/11-networking.md)
+- Sockets, TCP/UDP, HTTP clients, URL handling
+
+### 12. [Reactive Programming](./topics/12-reactive-programming.md)
+- Reactive streams, Project Reactor, Flux, Mono
+
+### 13. [Debugging](./topics/13-debugging.md)
+- Debugging concepts, IntelliJ debugger, Breakpoints, Stepping, Evaluation
+
+### 14. [Reverse Engineering](./topics/14-reverse-engineering.md)
+- Goals, objectives, steps, tools, decompilers, bytecode analysis
 
 ## Topics Covered
 
