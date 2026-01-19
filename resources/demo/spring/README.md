@@ -1,6 +1,6 @@
 # Progressive Spring Learning: Task Manager Application
 
-A hands-on project that evolves through 7 stages, demonstrating why each Spring concept exists by first experiencing the problem it solves.
+A hands-on project that evolves through 11 stages, demonstrating why each Spring concept exists by first experiencing the problem it solves. The journey takes you from plain Java to a complete microservices architecture.
 
 ## The Learning Philosophy
 
@@ -31,32 +31,46 @@ Each stage builds on the previous one. **Do not skip stages** - the learning com
 ## Stage Progression
 
 ```
-Stage 1: Plain Java + JDBC
-    │    "Feel the pain of manual wiring and raw JDBC"
-    │
-    ▼
-Stage 2: Maven
-    │    "Proper project structure and dependency management"
-    │
-    ▼
-Stage 3: Spring Core
-    │    "Let Spring wire dependencies for you"
-    │
-    ▼
-Stage 4: Spring Boot
-    │    "Auto-configuration removes boilerplate"
-    │
-    ▼
-Stage 5: Spring Data JPA
-    │    "Write interfaces, Spring writes SQL"
-    │
-    ▼
-Stage 6: REST API
-    │    "Expose functionality over HTTP"
-    │
-    ▼
-Stage 7: Production Touches
-         "Validation, error handling, DTOs"
+┌─────────────────────────────────────────────────────────────────────┐
+│                     WEEK 6: FOUNDATION                              │
+├─────────────────────────────────────────────────────────────────────┤
+│ Stage 1: Plain Java + JDBC                                          │
+│     │    "Feel the pain of manual wiring and raw JDBC"              │
+│     ▼                                                               │
+│ Stage 2: Maven                                                      │
+│     │    "Proper project structure and dependency management"       │
+│     ▼                                                               │
+│ Stage 3: Spring Core                                                │
+│     │    "Let Spring wire dependencies for you"                     │
+│     ▼                                                               │
+│ Stage 4: Spring Boot                                                │
+│     │    "Auto-configuration removes boilerplate"                   │
+│     ▼                                                               │
+│ Stage 5: Spring Data JPA                                            │
+│          "Write interfaces, Spring writes SQL"                      │
+├─────────────────────────────────────────────────────────────────────┤
+│                     WEEK 7: REST + PRODUCTION                       │
+├─────────────────────────────────────────────────────────────────────┤
+│ Stage 6: REST API                                                   │
+│     │    "Expose functionality over HTTP"                           │
+│     ▼                                                               │
+│ Stage 7: Production Touches                                         │
+│     │    "Validation, error handling, DTOs"                         │
+│     ▼                                                               │
+│ Stage 8: Testing + Profiles + Logging                               │
+│          "Quality, environments, observability"                     │
+├─────────────────────────────────────────────────────────────────────┤
+│                     WEEK 8: MICROSERVICES                           │
+├─────────────────────────────────────────────────────────────────────┤
+│ Stage 9: Service Decomposition                                      │
+│     │    "Split monolith into microservices"                        │
+│     ▼                                                               │
+│ Stage 10: Service Discovery (Eureka + Feign)                        │
+│     │    "Services find each other dynamically"                     │
+│     ▼                                                               │
+│ Stage 11: Gateway + Config Server                                   │
+│          "Single entry point, centralized config"                   │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -307,29 +321,134 @@ After each stage, you should be able to answer:
 - **Stage 5:** Why is JpaRepository better than raw JDBC?
 - **Stage 6:** What makes an API "RESTful"?
 - **Stage 7:** Why separate DTOs from entities?
+- **Stage 8:** Why use profiles? What types of tests exist in Spring?
+- **Stage 9:** What is a microservice? What are the 12-Factor App principles?
+- **Stage 10:** Why do we need service discovery? How does Feign simplify HTTP calls?
+- **Stage 11:** What problems does an API Gateway solve? Why centralize configuration?
 
 ---
 
 ## Estimated Time
 
-| Stage | Time | Focus |
-|-------|------|-------|
-| 1 | 4-6 hours | Understanding the baseline |
-| 2 | 2-3 hours | Maven structure |
-| 3 | 4-6 hours | Core Spring concepts |
-| 4 | 3-4 hours | Spring Boot magic |
-| 5 | 4-6 hours | JPA and repositories |
-| 6 | 4-6 hours | REST principles |
-| 7 | 3-4 hours | Production patterns |
+| Stage | Focus | Week |
+|-------|-------|------|
+| 1-2 | Plain Java → Maven (Foundation) | Week 6 |
+| 3 | Spring Core DI | Week 6 |
+| 4 | Spring Boot auto-config | Week 6 |
+| 5 | Spring Data JPA | Week 6 |
+| 6 | REST API development | Week 7 |
+| 7 | Production patterns | Week 7 |
+| 8 | Testing + Profiles + Logging | Week 7 |
+| 9 | Microservices decomposition | Week 8 |
+| 10 | Eureka + Feign | Week 8 |
+| 11 | Gateway + Config Server | Week 8 |
 
-**Total: ~25-35 hours** (1.5-2 weeks of focused learning)
+**Total: 3 weeks** (Week 6: Foundation, Week 7: REST + Production, Week 8: Microservices)
+
+---
+
+### Stage 8: Testing + Profiles + Logging
+**Location:** `stage-8-testing-profiles/`
+
+Add quality and environment support:
+- Spring Profiles (`application-dev.properties`, `application-prod.properties`)
+- Unit testing with JUnit 5 and Mockito
+- `@WebMvcTest` for controller testing
+- `@DataJpaTest` for repository testing
+- SLF4J logging configuration
+
+**What Improves:**
+- Environment-specific configurations
+- Testable, maintainable code
+- Debugging with structured logs
+
+**Run with profile:** `mvn spring-boot:run -Dspring-boot.run.profiles=dev`
+
+---
+
+### Stage 9: Service Decomposition (12-Factor App)
+**Location:** `stage-9-microservices/`
+
+Split monolith into microservices:
+- `task-service` (port 8081) - Task management
+- `user-service` (port 8082) - User management
+- Apply 12-Factor App principles
+- Separate databases per service
+
+**What Improves:**
+- Independent deployment
+- Technology flexibility per service
+- Team scalability
+
+---
+
+### Stage 10: Service Discovery (Eureka + Feign)
+**Location:** `stage-10-service-discovery/`
+
+Add dynamic service discovery:
+- Eureka Server for service registry
+- Services register automatically
+- Feign Client for inter-service communication
+- No hardcoded URLs
+
+**Architecture:**
+```
+         Eureka Server (8761)
+              │
+    ┌─────────┼─────────┐
+    │         │         │
+Task Service  User Service
+  (8081)        (8082)
+    │             ▲
+    └─── Feign ───┘
+```
+
+---
+
+### Stage 11: Gateway + Config Server
+**Location:** `stage-11-gateway-config/`
+
+Add API Gateway and centralized configuration:
+- Spring Cloud Gateway (single entry point on 8080)
+- Config Server (centralized configuration)
+- Route requests to appropriate services
+- Cross-cutting concerns (CORS, logging)
+
+**Architecture:**
+```
+Client → API Gateway (8080) → Task/User Services
+              │
+         Config Server (8888)
+```
+
+---
+
+## Complete Microservices Journey Summary
+
+```
+Week 6: Foundation
+├── Stage 1-2: Plain Java → Maven (feel the pain)
+├── Stage 3: Spring Core DI (wire components)
+├── Stage 4: Spring Boot (auto-configuration)
+└── Stage 5: Spring Data JPA (no more SQL)
+
+Week 7: REST + Production
+├── Stage 6: REST API (HTTP endpoints)
+├── Stage 7: Production (validation, DTOs, error handling)
+└── Stage 8: Testing + Profiles + Logging
+
+Week 8: Microservices
+├── Stage 9: Service Decomposition (12-Factor)
+├── Stage 10: Service Discovery (Eureka + Feign)
+└── Stage 11: Gateway + Config Server
+```
 
 ---
 
 ## Next Steps After Completion
 
-Once you've completed all 7 stages, you're ready for:
+Once you've completed all 11 stages, you're ready for:
 - Spring Security (authentication/authorization)
-- Spring Profiles (environment-specific config)
-- AOP (cross-cutting concerns like logging)
-- Microservices architecture
+- Circuit Breakers (Resilience4j)
+- Distributed Tracing (Sleuth/Zipkin)
+- Container orchestration (Docker/Kubernetes)
