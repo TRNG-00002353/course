@@ -1,79 +1,119 @@
 # Spring Data JPA
 
 ## Overview
-Spring Data JPA simplifies database access by providing repository abstractions and query methods.
+
+Spring Data JPA simplifies database access by providing repository abstractions over JPA. It eliminates boilerplate code for common data access operations.
 
 ## Learning Objectives
-By the end of this module, you will understand and be able to apply the key concepts and practices of Spring Data JPA.
+
+By the end of this module, you will be able to:
+- Understand JPA and Spring Data JPA benefits
+- Map Java entities to database tables
+- Use JpaRepository for data access
+- Write derived queries and custom @Query methods
+- Implement pagination and sorting
+
+---
 
 ## Topics Covered
 
-### 1. [JPA Overview](./topics/01-jpa-overview.md)
-- What is JPA?
-- JPA architecture and core concepts
+### 1. [JPA Introduction](./topics/01-jpa-introduction.md)
+Introduction to JPA and Spring Data JPA.
+
+- What is JPA and why use it
 - Spring Data JPA benefits
-- Repository Pattern and design principles
+- Project setup and configuration
+- Quick start example
 
-### 2. [Setup and Configuration](./topics/02-setup-configuration.md)
-- Setting up Spring Boot with JPA
-- Maven and Gradle dependencies
-- DataSource configuration (H2, MySQL, PostgreSQL)
-- JPA properties and environment-specific configuration
+### 2. [Entity Mapping](./topics/02-entity-mapping.md)
+Map Java classes to database tables.
 
-### 3. [Entity Mapping](./topics/03-entity-mapping.md)
 - @Entity, @Table, @Column annotations
 - Primary keys and generation strategies
-- Relationships: @OneToOne, @OneToMany, @ManyToOne, @ManyToMany
-- Embedded objects with @Embeddable
-- Cascade types and fetch strategies
+- Relationships: @ManyToOne, @OneToMany, @ManyToMany
+- Fetch types and cascade options
 
-### 4. [Repositories](./topics/04-repositories.md)
-- CrudRepository interface
-- PagingAndSortingRepository interface
+### 3. [Repositories](./topics/03-repositories.md)
+Use repository interfaces for data access.
+
 - JpaRepository interface
-- Custom repository implementations
-- Query by Example and Specifications
-
-### 5. [CRUD Operations](./topics/05-crud-operations.md)
-- Save and update operations
-- Find methods (findById, findAll, derived queries)
-- Delete operations (single, batch, soft delete)
-- Performance considerations
-
-### 6. [Queries](./topics/06-queries.md)
-- Query derivation from method names
-- @Query annotation with JPQL
-- Named queries
+- Derived query methods (findBy, countBy, existsBy)
+- @Query annotation for custom JPQL
 - Native SQL queries
-- DTO projections and query optimization
 
-### 7. [Pagination and Auditing](./topics/07-pagination-auditing.md)
-- Pageable interface and PageRequest
-- Sort object for ordering results
-- Page vs Slice comparison
-- Auditing with @CreatedDate, @LastModifiedDate
-- @CreatedBy, @LastModifiedBy with AuditorAware
+### 4. [CRUD Operations](./topics/04-crud-operations.md)
+Perform create, read, update, delete operations.
 
+- Save and update with save()
+- Find methods (findById, findAll)
+- Delete operations
+- Service and controller patterns
 
-## Key Concepts
-Refer to the curriculum and lecture notes for detailed explanations of each topic.
+### 5. [Pagination and Sorting](./topics/05-pagination-sorting.md)
+Handle large datasets efficiently.
 
-## Exercises
-See the [exercises](./exercises/) directory for hands-on practice problems and solutions.
-
-## Code Examples
-Check the module materials and exercises for practical code examples.
-
-## Additional Resources
-- Official documentation
-- Online tutorials and courses
-- Community forums and discussions
-
-## Assessment
-Make sure you are comfortable with all topics listed above before proceeding to the next module.
-
-## Next Steps
-Continue to the next module in the curriculum sequence.
+- Pageable and PageRequest
+- Sort object for ordering
+- Page object and metadata
+- REST API pagination patterns
 
 ---
-**Time Estimate:** 5 days | **Difficulty:** Intermediate | **Prerequisites:** Previous modules
+
+## Topic Flow
+
+```
+┌─────────────────────┐
+│ 1. JPA Introduction │  What and why
+└──────────┬──────────┘
+           ▼
+┌─────────────────────┐
+│ 2. Entity Mapping   │  Classes to tables
+└──────────┬──────────┘
+           ▼
+┌─────────────────────┐
+│ 3. Repositories     │  Query methods
+└──────────┬──────────┘
+           ▼
+┌─────────────────────┐
+│ 4. CRUD Operations  │  Practical usage
+└──────────┬──────────┘
+           ▼
+┌─────────────────────┐
+│ 5. Pagination       │  Large datasets
+└─────────────────────┘
+```
+
+---
+
+## Key Concepts Summary
+
+| Concept | Description |
+|---------|-------------|
+| **JPA** | Java Persistence API - ORM specification |
+| **Hibernate** | JPA implementation (default in Spring) |
+| **Entity** | Java class mapped to database table |
+| **Repository** | Interface for data access operations |
+| **Derived Query** | Query generated from method name |
+| **@Query** | Custom JPQL or native SQL |
+| **Pageable** | Pagination and sorting parameters |
+
+---
+
+## Exercises
+
+See the [exercises](./exercises/) directory for hands-on practice problems.
+
+## Additional Resources
+
+- [Spring Data JPA Documentation](https://docs.spring.io/spring-data/jpa/docs/current/reference/html/)
+- [JPA Query Methods](https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods)
+
+---
+
+## Next Steps
+
+After completing this module, continue to **Spring Security** to learn about authentication and authorization.
+
+---
+
+**Duration:** 4 days | **Difficulty:** Intermediate | **Prerequisites:** Module 16 (Spring MVC)
