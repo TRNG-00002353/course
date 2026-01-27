@@ -17,27 +17,22 @@ This program covers the complete technology stack required for modern enterprise
 - **Database**: MySQL, JDBC, Spring Data JPA, Hibernate
 - **Testing**: JUnit, Mockito, Test-Driven Development
 - **DevOps**: Git, Docker, Kubernetes, CI/CD Pipelines
-- **Cloud**: Google Cloud Platform (GCP)
+- **Cloud**: Amazon Web Services (AWS)
 - **Methodologies**: Agile, Scrum
 
 ## Repository Structure
 
 ```
 course/
-├── 01-linux/                    # Technology modules (01-27)
+├── 01-linux/                    # Technology modules (01-28)
 ├── 02-git/
 ├── ...
-├── 27-http/
+├── 28-aws/
 │
-├── week-01/                     # Weekly assessment resources
+├── week-01/ through week-05/    # Weekly assessment resources
 │   ├── faq.md                   # Frequently asked questions
-│   ├── mcq.md                   # Multiple choice questions (150)
+│   ├── mcq.md                   # Multiple choice questions
 │   └── mcq-answers.md           # Answer key with explanations
-│
-├── week-02/
-│   ├── faq.md
-│   ├── mcq.md                   # Multiple choice questions (120)
-│   └── mcq-answers.md
 │
 ├── submissions/                 # Learner submission folder
 │   ├── 01-linux/
@@ -46,7 +41,7 @@ course/
 │   │   └── exercises/           # Exercise files for submission
 │   ├── 06-javascript/
 │   │   └── exercises/
-│   └── ...                      # All 27 modules
+│   └── ...                      # All 28 modules
 │
 ├── projects-self/               # Individual projects
 │   ├── project-1-java-mysql-jdbc/
@@ -130,12 +125,12 @@ course/
 ### Week 11: Containerization & Cloud
 - Docker architecture
 - Kubernetes orchestration
-- Google Cloud Platform basics
+- AWS basics (EC2, RDS, S3)
 - **Project 3 Starts** (Full stack + Cloud deployment)
 
 ### Week 12: DevOps & Cloud Services
-- CI/CD pipelines
-- GCP services (Compute, Storage, Networking)
+- CI/CD pipelines with AWS (CodeBuild, CodePipeline)
+- AWS services (EC2, RDS, S3, VPC)
 - Cloud deployment strategies
 
 ### Week 13: Project Week
@@ -170,9 +165,10 @@ course/
 | 22 | [RxJS](./22-rxjs/) | Observables, operators, patterns |
 | 23 | [Docker](./23-docker/) | Containers, images, compose |
 | 24 | [Kubernetes](./24-kubernetes/) | Orchestration, deployments, services |
-| 25 | [GCP](./25-gcp/) | Cloud services, deployment |
-| 26 | [DevOps](./26-devops/) | CI/CD, automation, monitoring |
+| 25 | [GCP](./25-gcp/) | Cloud services (reference) |
+| 26 | [DevOps](./26-devops/) | AWS CI/CD, CodeBuild, CodePipeline |
 | 27 | [HTTP](./27-http/) | Protocol, methods, status codes |
+| 28 | [AWS](./28-aws/) | EC2, RDS, S3, VPC, deployment |
 
 ## Projects
 
@@ -183,7 +179,7 @@ course/
 | [Project 1](./projects-self/project-1-java-mysql-jdbc/) | Java, MySQL, JDBC | 3-5 | Console-based application with database |
 | [Project 2](./projects-self/project-2-spring-boot/) | Spring Boot, Spring Data JPA | 7-8 | RESTful API backend |
 | [Project 3](./projects-self/project-3-angular/) | Angular, TypeScript, RxJS | 9-10 | Single page application frontend |
-| [Project 4](./projects-self/project-4-cloud-deployment/) | Docker, Kubernetes, GCP | 11-13 | Cloud-native deployment |
+| [Project 4](./projects-self/project-4-cloud-deployment/) | Docker, Kubernetes, AWS | 11-13 | Cloud-native deployment |
 
 ### Team Projects (projects-team/)
 
@@ -263,6 +259,9 @@ HTML exercises follow a 3-version progressive enhancement approach:
 |------|-----|-----|--------|
 | Week 1 | [30 Q&As](./week-01/faq.md) | [150 questions](./week-01/mcq.md) | Linux, Git, Agile, HTML, CSS |
 | Week 2 | [30 Q&As](./week-02/faq.md) | [120 questions](./week-02/mcq.md) | JavaScript, Bootstrap, jQuery |
+| Week 3 | [30 Q&As](./week-03/faq.md) | [120 questions](./week-03/mcq.md) | MySQL, Core Java basics |
+| Week 4 | [30 Q&As](./week-04/faq.md) | [120 questions](./week-04/mcq.md) | OOP, Collections, Multithreading |
+| Week 5 | [30 Q&As](./week-05/faq.md) | [120 questions](./week-05/mcq.md) | Testing, Logging, Functional Programming |
 
 **MCQ Answer Distribution**: All MCQs have equal distribution across A, B, C, D options (25% each)
 
@@ -284,8 +283,11 @@ HTML exercises follow a 3-version progressive enhancement approach:
 |----------|-------------|
 | [Week 1 Materials](./week-01/) | FAQ, MCQ, Answers |
 | [Week 2 Materials](./week-02/) | FAQ, MCQ, Answers |
+| [Week 3 Materials](./week-03/) | FAQ, MCQ, Answers |
+| [Week 4 Materials](./week-04/) | FAQ, MCQ, Answers |
+| [Week 5 Materials](./week-05/) | FAQ, MCQ, Answers |
 | [Submissions](./submissions/) | Exercise submission folder |
-| [Individual Projects](./projects-self/) | 3 self-paced projects |
+| [Individual Projects](./projects-self/) | 4 self-paced projects |
 | [Team Projects](./projects-team/) | 10 collaborative project options |
 | [Setup Guides](./resources/setup-guides/) | Installation instructions |
 | [Cheat Sheets](./resources/cheat-sheets/) | Quick references |
