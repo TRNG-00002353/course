@@ -154,6 +154,34 @@ found.setEmail("new@email.com");
 entityManager.remove(found);  // DELETE
 ```
 
+### EntityManager vs Session
+
+| Term | What It Is |
+|------|------------|
+| **EntityManager** | JPA standard interface (what you should use) |
+| **Session** | Hibernate's native interface (underlying implementation) |
+
+```
+┌─────────────────────────────────┐
+│     EntityManager (JPA)         │  ← You use this
+├─────────────────────────────────┤
+│     Session (Hibernate)         │  ← Under the hood
+└─────────────────────────────────┘
+```
+
+In Spring Boot, you work with `EntityManager` (JPA standard). But you'll see "Session" in:
+- Error messages (`SessionImpl`, `Session was closed`)
+- Stack traces
+- Older tutorials and documentation
+
+They're essentially the same thing - `EntityManager` delegates to `Session` internally. If you need the native Session:
+
+```java
+Session session = entityManager.unwrap(Session.class);
+```
+
+> **Tip:** Stick with `EntityManager` for portability. Only unwrap to `Session` when you need Hibernate-specific features.
+
 ---
 
 ## Entity Lifecycle States
