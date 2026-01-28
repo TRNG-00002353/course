@@ -1,4 +1,4 @@
-# Linux Fundamentals
+# Linux 
 
 ## Overview
 This module introduces you to Linux operating system fundamentals and basic command-line operations. Understanding Linux is essential for developers as most servers and cloud environments run on Linux.
