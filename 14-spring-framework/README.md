@@ -18,6 +18,14 @@ By the end of this module, you will be able to:
 
 ## Topics Covered
 
+### 0. [Java SE to EE Evolution](./topics/00-java-se-to-ee-evolution.md)
+Brief introduction to Java editions and how enterprise Java evolved. Understand why Spring emerged as a lightweight alternative to Java EE.
+
+- Java Editions (SE, EE, ME)
+- Java EE specifications overview
+- Evolution timeline (J2EE → Jakarta EE)
+- Why Spring emerged
+
 ### 1. [Spring Framework Overview](./topics/01-spring-overview.md)
 Introduction to Spring Framework and its ecosystem. Understand why Spring became the de-facto standard for Java enterprise development and how its modules work together.
 
@@ -106,6 +114,10 @@ Deep dive into XML-based Spring configuration. Covers BeanFactory usage, Applica
 ## Topic Flow
 
 ```
+┌─────────────────┐
+│  0. SE→EE Evo   │  Why enterprise Java? Why Spring?
+└────────┬────────┘
+         ▼
 ┌─────────────────┐
 │  1. Overview    │  What is Spring?
 └────────┬────────┘
