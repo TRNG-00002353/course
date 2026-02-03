@@ -215,7 +215,74 @@ int updateStatus(@Param("id") Long id, @Param("active") boolean active);
 
 ---
 
-## 5. CRUD Operations
+## 5. Projections
+
+Projections fetch only the data you need, improving performance and API design.
+
+### Interface-Based Projection (Closed)
+
+```java
+// Define what fields to fetch
+public interface UserSummary {
+    String getFirstName();
+    String getLastName();
+    String getEmail();
+}
+
+// Use in repository
+public interface UserRepository extends JpaRepository<User, Long> {
+    List<UserSummary> findByDepartmentId(Long deptId);
+}
+```
+
+### Nested Projections
+
+```java
+public interface OrderSummary {
+    String getOrderNumber();
+    CustomerInfo getCustomer();
+
+    interface CustomerInfo {
+        String getName();
+    }
+}
+```
+
+### Dynamic Projections
+
+```java
+// One method, multiple return types
+<T> List<T> findByStatus(String status, Class<T> type);
+
+// Usage
+List<UserSummary> summaries = repo.findByStatus("ACTIVE", UserSummary.class);
+List<UserContact> contacts = repo.findByStatus("ACTIVE", UserContact.class);
+```
+
+### DTO Projection with @Query
+
+```java
+@Query("""
+    SELECT new com.example.dto.EmployeeDTO(
+        e.firstName, e.lastName, e.department.name
+    )
+    FROM Employee e WHERE e.active = true
+    """)
+List<EmployeeDTO> findActiveEmployees();
+```
+
+### Projection Types Comparison
+
+| Type | Fetches | Use When |
+|------|---------|----------|
+| **Closed Interface** | Only declared getters | Most cases (best performance) |
+| **Open Interface (@Value)** | Full entity | Need computed values |
+| **Class-based (DTO)** | Constructor params | Need methods or validation |
+| **Dynamic** | Varies by Class param | Multiple views of same query |
+
+---
+
+## 6. CRUD Operations
 
 ### Service Pattern
 
@@ -260,7 +327,7 @@ public class UserService {
 
 ---
 
-## 6. Pagination and Sorting
+## 7. Pagination and Sorting
 
 ### Pageable
 
@@ -379,5 +446,6 @@ By the end of this module, you should be able to:
 - [ ] Use JpaRepository for CRUD operations
 - [ ] Write derived query methods
 - [ ] Use @Query for custom JPQL
+- [ ] Use projections to fetch partial data
 - [ ] Implement pagination with Pageable and Page
 - [ ] Build REST APIs with paginated responses

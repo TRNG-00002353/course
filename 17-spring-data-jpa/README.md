@@ -50,7 +50,15 @@ Use repository interfaces for data access.
 - @Query annotation for custom JPQL
 - Native SQL queries
 
-### 4. [CRUD Operations](./topics/04-crud-operations.md)
+### 4. [Projections](./topics/04-projections.md)
+Fetch only the data you need.
+
+- Interface-based projections (closed)
+- Nested projections for relationships
+- Class-based projections (DTOs)
+- Dynamic projections
+
+### 5. [CRUD Operations](./topics/05-crud-operations.md)
 Perform create, read, update, delete operations.
 
 - Save and update with save()
@@ -58,7 +66,7 @@ Perform create, read, update, delete operations.
 - Delete operations
 - Service and controller patterns
 
-### 5. [Pagination and Sorting](./topics/05-pagination-sorting.md)
+### 6. [Pagination and Sorting](./topics/06-pagination-sorting.md)
 Handle large datasets efficiently.
 
 - Pageable and PageRequest
@@ -88,11 +96,15 @@ Handle large datasets efficiently.
 └──────────┬──────────┘
            ▼
 ┌─────────────────────┐
-│ 4. CRUD Operations  │  Practical usage
+│ 4. Projections      │  Fetch only what you need
 └──────────┬──────────┘
            ▼
 ┌─────────────────────┐
-│ 5. Pagination       │  Large datasets
+│ 5. CRUD Operations  │  Practical usage
+└──────────┬──────────┘
+           ▼
+┌─────────────────────┐
+│ 6. Pagination       │  Large datasets
 └─────────────────────┘
 ```
 
@@ -112,6 +124,7 @@ Handle large datasets efficiently.
 | **Repository** | Interface for data access operations |
 | **Derived Query** | Query generated from method name |
 | **@Query** | Custom JPQL or native SQL |
+| **Projection** | Interface or class to fetch partial data |
 | **Pageable** | Pagination and sorting parameters |
 
 ---
