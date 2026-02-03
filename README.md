@@ -169,6 +169,7 @@ course/
 | 26 | [DevOps](./26-devops/) | AWS CI/CD, CodeBuild, CodePipeline |
 | 27 | [HTTP](./27-http/) | Protocol, methods, status codes |
 | 28 | [AWS](./28-aws/) | EC2, RDS, S3, VPC, deployment |
+| 29 | [Code Quality](./29-code-quality/) | Metrics, technical debt, code smells, SonarQube |
 
 ## Projects
 
