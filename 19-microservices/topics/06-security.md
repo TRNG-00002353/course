@@ -309,8 +309,20 @@ public class PaymentService {
 
 ## Single Sign-On (SSO)
 
-Single Sign-On allows users to log in once and access multiple applications without re-authenticating. Use identity providers like Keycloak with OAuth2 Login:
+### What is SSO?
 
+Single Sign-On allows users to log in once and access multiple applications without re-authenticating.
+
+```
+User → Login → Authorization Server → Token
+User → App 1 (uses token) ✓
+User → App 2 (uses same token) ✓
+User → App 3 (uses same token) ✓
+```
+
+### SSO with Keycloak
+
+**Configuration:**
 ```yaml
 spring:
   security:
@@ -322,10 +334,164 @@ spring:
             client-secret: ${CLIENT_SECRET}
             scope: openid,profile,email
             authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
         provider:
           keycloak:
             issuer-uri: http://localhost:8080/realms/microservices
+            user-name-attribute: preferred_username
 ```
+
+**Security Configuration:**
+```java
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/", "/public/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .defaultSuccessUrl("/home", true)
+            )
+            .logout(logout -> logout
+                .logoutSuccessUrl("/")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+            );
+        return http.build();
+    }
+}
+```
+
+**Accessing User Info:**
+```java
+@Controller
+public class HomeController {
+
+    @GetMapping("/home")
+    public String home(@AuthenticationPrincipal OidcUser principal, Model model) {
+        model.addAttribute("username", principal.getPreferredUsername());
+        model.addAttribute("email", principal.getEmail());
+        return "home";
+    }
+}
+```
+
+---
+
+## Session Hijacking Prevention
+
+### What is Session Hijacking?
+
+Session hijacking is when an attacker steals a user's session ID to gain unauthorized access.
+
+### Prevention Techniques
+
+#### 1. HTTPS Only
+
+```yaml
+server:
+  ssl:
+    enabled: true
+    key-store: classpath:keystore.p12
+    key-store-password: ${KEYSTORE_PASSWORD}
+    key-store-type: PKCS12
+```
+
+```java
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        .requiresChannel(channel -> channel
+            .anyRequest().requiresSecure()  // Force HTTPS
+        );
+    return http.build();
+}
+```
+
+#### 2. Secure Cookies
+
+```yaml
+server:
+  servlet:
+    session:
+      cookie:
+        secure: true      # Only send over HTTPS
+        http-only: true   # Not accessible via JavaScript
+        same-site: strict # Prevent CSRF
+      timeout: 30m        # Short session timeout
+```
+
+```java
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        .sessionManagement(session -> session
+            .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+            .sessionFixation().newSession()  // New session on login
+        );
+    return http.build();
+}
+```
+
+#### 3. Session Fixation Protection
+
+```java
+http
+    .sessionManagement(session -> session
+        .sessionFixation().newSession()  // Generate new session ID on login
+    );
+```
+
+#### 4. Token-Based Authentication (Stateless)
+
+Use JWT instead of sessions to eliminate session hijacking risk:
+
+```java
+@Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        .sessionManagement(session -> session
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        )
+        .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
+    return http.build();
+}
+```
+
+#### 5. Logout Properly
+
+```java
+@RestController
+public class AuthController {
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        SecurityContextHolder.clearContext();
+        return ResponseEntity.ok().build();
+    }
+}
+```
+
+### Session Security Checklist
+
+| Technique | Purpose |
+|-----------|---------|
+| HTTPS | Encrypt session ID in transit |
+| Secure Cookie | Only send cookie over HTTPS |
+| HttpOnly Cookie | Prevent JavaScript access (XSS protection) |
+| SameSite Cookie | Prevent CSRF attacks |
+| Session Fixation | New session ID on login |
+| Short Timeout | Limit exposure window |
+| Proper Logout | Clear session and security context |
 
 ---
 
@@ -361,7 +527,7 @@ management:
 | **OAuth2** | Authorization framework for delegated access |
 | **Resource Server** | Validates access tokens, protects resources |
 | **SSO** | Single login for multiple applications |
-| **Session Hijacking** | Prevent with HTTPS, secure cookies, validation |
+| **Session Hijacking** | Prevent with HTTPS, secure cookies, session fixation protection |
 | **JWT** | Stateless, token-based authentication |
 | **Best Practices** | HTTPS, validation, secrets management, monitoring |
 
