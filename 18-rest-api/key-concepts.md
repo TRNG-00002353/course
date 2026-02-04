@@ -1357,6 +1357,163 @@ public class ResourceController {
 
 ---
 
+## 7. API Security
+
+### Why It Matters
+- Protect sensitive data from unauthorized access
+- Prevent security vulnerabilities (injection, XSS, etc.)
+- Meet compliance requirements (GDPR, HIPAA, PCI-DSS)
+- Build trust with users and clients
+- Maintain system integrity
+
+### Authentication vs Authorization
+
+| Concept | Question | Examples |
+|---------|----------|----------|
+| **Authentication** | Who are you? | Username/password, JWT, OAuth |
+| **Authorization** | What can you do? | Roles, permissions, scopes |
+
+### JWT (JSON Web Token)
+
+**Structure:**
+```
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.     ← Header
+eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6...   ← Payload
+SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV...     ← Signature
+```
+
+**JWT Flow:**
+```
+1. Client → POST /login {credentials}
+2. Server → Validate credentials
+3. Server → Generate JWT token
+4. Server → Return token to client
+5. Client → Store token
+6. Client → GET /api/resource (Authorization: Bearer <token>)
+7. Server → Validate JWT
+8. Server → Return protected resource
+```
+
+**JwtService Example:**
+```java
+@Service
+public class JwtService {
+    @Value("${jwt.secret}")
+    private String secret;
+
+    public String generateToken(UserDetails user) {
+        return Jwts.builder()
+            .subject(user.getUsername())
+            .issuedAt(new Date())
+            .expiration(new Date(System.currentTimeMillis() + 86400000))
+            .signWith(getSigningKey())
+            .compact();
+    }
+
+    public boolean isTokenValid(String token, UserDetails user) {
+        String username = extractUsername(token);
+        return username.equals(user.getUsername()) && !isTokenExpired(token);
+    }
+}
+```
+
+### Spring Security Configuration
+
+```java
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+```
+
+### Method-Level Security
+
+```java
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    // Only ADMIN can access
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
+    public List<User> getAllUsers() { ... }
+
+    // Owner or ADMIN can access
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable Long id) { ... }
+
+    // Access current user via @AuthenticationPrincipal
+    @GetMapping("/me")
+    public User getCurrentUser(@AuthenticationPrincipal User user) {
+        return user;
+    }
+}
+```
+
+### OAuth2 Quick Reference
+
+**Grant Types:**
+| Type | Use Case |
+|------|----------|
+| Authorization Code | Web apps with server |
+| Client Credentials | Server-to-server |
+| PKCE | Mobile/SPA apps |
+
+**Resource Server Config:**
+```yaml
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://accounts.google.com
+```
+
+### Security Best Practices
+
+```
+✅ Always use HTTPS
+✅ Hash passwords with BCrypt
+✅ Use stateless JWT for APIs
+✅ Validate all input
+✅ Use parameterized queries (JPA does this)
+✅ Set secure headers (CSP, X-Frame-Options)
+✅ Implement rate limiting
+✅ Log security events
+✅ Keep dependencies updated
+
+❌ Never store plain text passwords
+❌ Never expose sensitive data in responses
+❌ Never trust client input
+❌ Never commit secrets to version control
+```
+
+---
+
 ## Summary Checklist
 
 By the end of this module, developers should be able to:
@@ -1373,6 +1530,10 @@ By the end of this module, developers should be able to:
 - [ ] Handle CORS and security headers
 - [ ] Follow REST best practices and conventions
 - [ ] Test REST APIs thoroughly
+- [ ] Implement JWT authentication
+- [ ] Configure Spring Security for REST APIs
+- [ ] Use method-level security (@PreAuthorize)
+- [ ] Understand OAuth2 concepts and integration
 
 ---
 
@@ -1380,7 +1541,7 @@ By the end of this module, developers should be able to:
 
 After mastering these concepts, proceed to:
 - [Module 19: Microservices](../19-microservices/) - Distributed systems architecture
-- Practice building complete REST APIs
+- Practice building complete REST APIs with JWT authentication
 - Explore advanced topics: HATEOAS, GraphQL, gRPC
-- Learn API security (OAuth2, JWT)
 - Study API gateway patterns and rate limiting
+- Implement OAuth2 with external providers (Google, GitHub)

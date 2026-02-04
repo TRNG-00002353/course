@@ -68,6 +68,21 @@ By the end of this module, you will understand and be able to apply the key conc
 - Generating Client Code
 - Documentation Best Practices
 
+### 7. [API Security](./topics/07-api-security.md)
+- Spring Security Fundamentals
+- Authentication vs Authorization
+- JWT (JSON Web Token) Authentication
+- JWT Structure and Flow
+- JwtService Implementation
+- JWT Authentication Filter
+- Security Configuration
+- Method-Level Security (@PreAuthorize, @Secured)
+- OAuth2 Integration
+- OAuth2 Resource Server
+- OAuth2 Client (Login with Google/GitHub)
+- Password Security (BCrypt)
+- Security Best Practices
+
 ## Key Concepts
 For detailed explanations, code examples, and best practices, refer to the individual topic files in the [topics](./topics/) directory.
 
@@ -88,5 +103,9 @@ Make sure you are comfortable with all topics listed above before proceeding to 
 ## Next Steps
 Continue to the next module in the curriculum sequence.
 
+## Demo Projects
+
+- [Spring Security JWT Demo](../resources/demo/spring/spring-security-jwt-demo/) - Complete JWT authentication implementation
+
 ---
-**Time Estimate:** 4 days | **Difficulty:** Intermediate | **Prerequisites:** Previous modules
+**Time Estimate:** 5 days | **Difficulty:** Intermediate | **Prerequisites:** Previous modules
