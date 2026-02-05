@@ -495,6 +495,143 @@ public class AuthController {
 
 ---
 
+## Web Security Fundamentals
+
+Brief overview of common web security concepts relevant to microservices.
+
+### CORS (Cross-Origin Resource Sharing)
+
+**What is CORS?**
+
+CORS is a browser security feature that restricts web pages from making requests to a different domain than the one that served the page.
+
+```
+Browser at https://myapp.com
+    ↓
+Tries to call https://api.example.com/users
+    ↓
+Browser blocks request (different origin)
+```
+
+**Why it exists:** Prevents malicious sites from making unauthorized requests using your credentials.
+
+**When you need CORS:**
+- Frontend (React/Angular) on `localhost:3000` calling API on `localhost:8080`
+- Web app calling a different domain's API
+
+**Spring Configuration:**
+
+```java
+@Configuration
+public class CorsConfig {
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/api/**")
+                    .allowedOrigins("http://localhost:3000")
+                    .allowedMethods("GET", "POST", "PUT", "DELETE")
+                    .allowedHeaders("*")
+                    .allowCredentials(true);
+            }
+        };
+    }
+}
+
+// Or per-controller
+@CrossOrigin(origins = "http://localhost:3000")
+@RestController
+public class UserController { }
+```
+
+**In Microservices:** Configure CORS at the API Gateway level (single entry point).
+
+---
+
+### CSRF (Cross-Site Request Forgery)
+
+**What is CSRF?**
+
+CSRF tricks authenticated users into submitting unintended requests. A malicious site makes requests to your app using the user's existing session.
+
+```
+1. User logs into bank.com (session cookie set)
+2. User visits evil.com
+3. evil.com has: <img src="https://bank.com/transfer?to=hacker&amount=1000">
+4. Browser sends request WITH user's bank.com cookies
+5. Bank processes transfer (user was authenticated)
+```
+
+**Why disabled for REST APIs?**
+
+Stateless APIs using JWT tokens are NOT vulnerable to CSRF:
+- JWT is sent in Authorization header, not cookies
+- Malicious sites cannot access your JavaScript to read the token
+
+```java
+// Safe to disable for stateless JWT APIs
+http.csrf(csrf -> csrf.disable())
+    .sessionManagement(session -> session
+        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+```
+
+**When you NEED CSRF protection:**
+- Session-based authentication (cookies)
+- Server-rendered web apps with forms
+
+```java
+// Enable for session-based apps
+http.csrf(csrf -> csrf
+    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()));
+```
+
+---
+
+### DDoS (Distributed Denial of Service)
+
+**What is DDoS?**
+
+DDoS attacks overwhelm a service with massive traffic, making it unavailable to legitimate users.
+
+```
+Normal: 100 requests/second → Server handles fine
+DDoS:   1,000,000 requests/second → Server overwhelmed → Service down
+```
+
+**Basic Mitigation Strategies:**
+
+| Strategy | Implementation |
+|----------|---------------|
+| **Rate Limiting** | Limit requests per client (API Gateway) |
+| **Cloud Protection** | AWS Shield, Cloudflare, etc. |
+| **Auto-Scaling** | Scale resources during traffic spikes |
+| **Load Balancing** | Distribute traffic across instances |
+
+**Rate Limiting in API Gateway:**
+
+```yaml
+# Spring Cloud Gateway rate limiting
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10  # requests/second
+                redis-rate-limiter.burstCapacity: 20
+```
+
+**Note:** Full DDoS protection requires infrastructure-level solutions (cloud providers, CDNs). Application-level rate limiting helps but cannot stop large-scale attacks alone.
+
+---
+
 ## Security Best Practices
 
 1. **HTTPS Only**: Force HTTPS for all communications

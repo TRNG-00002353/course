@@ -597,6 +597,118 @@ GET /api/USERS/123
 
 ---
 
+## Content Negotiation
+
+Content negotiation allows clients and servers to agree on the format of data exchanged.
+
+### How It Works
+
+The client specifies preferred formats using HTTP headers, and the server responds in the best matching format.
+
+**Key Headers:**
+
+| Header | Purpose | Example |
+|--------|---------|---------|
+| `Accept` | Client's preferred response format | `application/json` |
+| `Content-Type` | Format of request body | `application/json` |
+
+### Basic Example
+
+```http
+# Client requests JSON
+GET /api/users/123
+Accept: application/json
+
+# Server responds with JSON
+HTTP/1.1 200 OK
+Content-Type: application/json
+{"id": 123, "name": "John"}
+```
+
+### Spring Boot Implementation
+
+```java
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    // Default: JSON (most common)
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable Long id) {
+        return userService.findById(id);
+    }
+
+    // Explicit format specification
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public User getUserJson(@PathVariable Long id) {
+        return userService.findById(id);
+    }
+
+    // Accept specific content type
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    public User createUser(@RequestBody User user) {
+        return userService.create(user);
+    }
+}
+```
+
+**Note:** JSON is the standard for REST APIs. XML support is rarely needed in modern applications.
+
+---
+
+## HATEOAS (Brief Overview)
+
+HATEOAS (Hypermedia as the Engine of Application State) is a REST constraint where responses include links to related resources and available actions.
+
+### Why HATEOAS?
+
+- Clients discover available actions dynamically
+- API becomes self-documenting
+- Reduces coupling between client and server
+
+### Example Response
+
+```json
+{
+  "id": 123,
+  "name": "John Doe",
+  "email": "john@example.com",
+  "_links": {
+    "self": { "href": "/api/users/123" },
+    "orders": { "href": "/api/users/123/orders" },
+    "delete": { "href": "/api/users/123", "method": "DELETE" }
+  }
+}
+```
+
+### Spring HATEOAS (Basic)
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-hateoas</artifactId>
+</dependency>
+```
+
+```java
+import org.springframework.hateoas.EntityModel;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
+@GetMapping("/{id}")
+public EntityModel<User> getUser(@PathVariable Long id) {
+    User user = userService.findById(id);
+
+    return EntityModel.of(user,
+        linkTo(methodOn(UserController.class).getUser(id)).withSelfRel(),
+        linkTo(methodOn(UserController.class).getAllUsers()).withRel("users")
+    );
+}
+```
+
+**Note:** HATEOAS adds complexity. Use it when clients need dynamic API discovery. For most REST APIs, good documentation (Swagger/OpenAPI) is sufficient.
+
+---
+
 ## Summary
 
 REST is a powerful architectural style that provides:

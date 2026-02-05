@@ -389,14 +389,92 @@ public class OrderService {
 
 ---
 
-## Other Resilience Patterns
+## Bulkhead Pattern
 
-Resilience4j also supports additional patterns:
+### What is Bulkhead?
 
-- **Bulkhead**: Limits concurrent calls to prevent resource exhaustion
-- **Rate Limiter**: Controls request rate to prevent overload
+The Bulkhead pattern isolates elements of an application into pools so that if one fails, others continue to function. Named after ship compartments that prevent flooding from spreading.
 
-These can be combined with Circuit Breaker and Retry for comprehensive resilience.
+**Problem it solves:**
+```
+Without Bulkhead:
+Thread Pool (10 threads) shared by all services
+├── Payment Service calls (slow) → uses all 10 threads
+├── Order Service calls → BLOCKED (no threads available)
+└── Inventory Service calls → BLOCKED
+```
+
+**With Bulkhead:**
+```
+Payment Service  → Pool A (5 threads max)
+Order Service    → Pool B (5 threads max)
+Inventory Service → Pool C (5 threads max)
+
+Payment slow? Only Pool A affected. Others continue working.
+```
+
+### Bulkhead Configuration
+
+```yaml
+resilience4j:
+  bulkhead:
+    configs:
+      default:
+        maxConcurrentCalls: 10  # Max concurrent calls
+        maxWaitDuration: 500ms  # Max time to wait for permission
+
+    instances:
+      paymentService:
+        maxConcurrentCalls: 5
+        maxWaitDuration: 0  # Fail immediately if limit reached
+
+      orderService:
+        maxConcurrentCalls: 10
+        maxWaitDuration: 100ms
+```
+
+### Using Bulkhead
+
+```java
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
+
+@Service
+public class PaymentService {
+
+    @Bulkhead(name = "paymentService", fallbackMethod = "paymentBulkheadFallback")
+    public PaymentResponse processPayment(PaymentRequest request) {
+        return paymentClient.process(request);
+    }
+
+    public PaymentResponse paymentBulkheadFallback(PaymentRequest request, Exception ex) {
+        log.warn("Payment bulkhead full, request rejected");
+        return PaymentResponse.builder()
+            .status("REJECTED")
+            .message("System busy, please retry later")
+            .build();
+    }
+}
+```
+
+### Combining All Patterns
+
+```java
+@Service
+public class OrderService {
+
+    // Order: Bulkhead → Retry → CircuitBreaker
+    @Bulkhead(name = "orderService")
+    @Retry(name = "orderService")
+    @CircuitBreaker(name = "orderService", fallbackMethod = "orderFallback")
+    public OrderResponse createOrder(OrderRequest request) {
+        return orderClient.create(request);
+    }
+
+    public OrderResponse orderFallback(OrderRequest request, Exception ex) {
+        return OrderResponse.pending("Order queued for processing");
+    }
+}
+```
 
 ---
 
