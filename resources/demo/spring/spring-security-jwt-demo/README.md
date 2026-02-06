@@ -12,42 +12,378 @@ This project demonstrates:
 - **Password Encoding**: BCrypt for secure password storage
 - **OpenAPI Documentation**: Swagger UI with security schemes
 
-## Architecture
+## How JWT Security Works
+
+### Complete Authentication Flow
 
 ```
-┌─────────────┐
-│   Client    │
-└──────┬──────┘
-       │
-       │ 1. POST /api/auth/login
-       │    {email, password}
-       ▼
-┌─────────────────────────────────────────┐
-│           Security Filter Chain          │
-├─────────────────────────────────────────┤
-│  JwtAuthenticationFilter                 │
-│  - Extracts JWT from Authorization header│
-│  - Validates token                       │
-│  - Sets SecurityContext                  │
-└──────┬──────────────────────────────────┘
-       │
-       │ 2. Returns JWT token
-       │
-       ▼
-┌─────────────┐
-│   Client    │
-└──────┬──────┘
-       │
-       │ 3. GET /api/users/me
-       │    Authorization: Bearer <token>
-       ▼
-┌─────────────────────────────────────────┐
-│          Protected Resource              │
-│  - Token validated by JwtAuthFilter     │
-│  - User loaded from database            │
-│  - Authorization checked                │
-└─────────────────────────────────────────┘
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                           JWT AUTHENTICATION FLOW                              ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║   ┌──────────┐                                              ┌──────────────┐  ║
+║   │  Client  │                                              │    Server    │  ║
+║   └────┬─────┘                                              └───────┬──────┘  ║
+║        │                                                            │         ║
+║        │  ════════════════ PHASE 1: LOGIN ══════════════════       │         ║
+║        │                                                            │         ║
+║        │  1. POST /api/auth/login                                  │         ║
+║        │     ┌─────────────────────────────┐                       │         ║
+║        │────▶│ { "email": "user@test.com", │──────────────────────▶│         ║
+║        │     │   "password": "password123" }                       │         ║
+║        │     └─────────────────────────────┘                       │         ║
+║        │                                                            │         ║
+║        │                                    2. Validate credentials │         ║
+║        │                                       ┌────────────────┐   │         ║
+║        │                                       │ Load user from │   │         ║
+║        │                                       │ database       │   │         ║
+║        │                                       │ Check password │   │         ║
+║        │                                       │ (BCrypt)       │   │         ║
+║        │                                       └────────────────┘   │         ║
+║        │                                                            │         ║
+║        │                                    3. Generate JWT token   │         ║
+║        │                                       ┌────────────────┐   │         ║
+║        │                                       │ Create payload │   │         ║
+║        │                                       │ Sign with      │   │         ║
+║        │                                       │ secret key     │   │         ║
+║        │                                       └────────────────┘   │         ║
+║        │                                                            │         ║
+║        │  4. Return JWT token                                      │         ║
+║        │     ┌─────────────────────────────────────────────────┐   │         ║
+║        │◀────│ { "token": "eyJhbGciOiJIUzI1NiJ9.eyJz...",      │◀──│         ║
+║        │     │   "type": "Bearer",                              │   │         ║
+║        │     │   "expiresIn": 86400000 }                        │   │         ║
+║        │     └─────────────────────────────────────────────────┘   │         ║
+║        │                                                            │         ║
+║   ┌────┴─────┐                                                      │         ║
+║   │  Client  │  5. Store token (localStorage, memory, etc.)        │         ║
+║   └────┬─────┘                                                      │         ║
+║        │                                                            │         ║
+║        │  ═══════════ PHASE 2: ACCESS PROTECTED RESOURCE ══════════ │         ║
+║        │                                                            │         ║
+║        │  6. GET /api/users/me                                     │         ║
+║        │     ┌─────────────────────────────────────────────────┐   │         ║
+║        │────▶│ Headers:                                         │──▶│         ║
+║        │     │   Authorization: Bearer eyJhbGciOiJIUzI1NiJ9... │   │         ║
+║        │     └─────────────────────────────────────────────────┘   │         ║
+║        │                                                            │         ║
+║        │                                    7. JwtAuthFilter       │         ║
+║        │                                       validates token      │         ║
+║        │                                                            │         ║
+║        │                                    8. Load user, check    │         ║
+║        │                                       authorization        │         ║
+║        │                                                            │         ║
+║        │  9. Return protected data                                 │         ║
+║        │     ┌─────────────────────────────────────────────────┐   │         ║
+║        │◀────│ { "id": 1, "name": "User", "role": "USER" }     │◀──│         ║
+║        │     └─────────────────────────────────────────────────┘   │         ║
+║        │                                                            │         ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
 ```
+
+---
+
+### JWT Token Structure
+
+```
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                              JWT TOKEN ANATOMY                                ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║                                                                              ║
+║  A JWT consists of three parts separated by dots (.)                         ║
+║                                                                              ║
+║  eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyQGV4YW1wbGUuY29tIi...signature        ║
+║  ├────────────────────┤├─────────────────────────────────────┤├───────────┤  ║
+║         HEADER                      PAYLOAD                    SIGNATURE     ║
+║                                                                              ║
+║  ┌─────────────────────────────────────────────────────────────────────────┐ ║
+║  │                            1. HEADER (Red)                              │ ║
+║  │  Base64 encoded JSON describing the token                               │ ║
+║  │                                                                         │ ║
+║  │  {                                                                      │ ║
+║  │    "alg": "HS256",    ◄── Algorithm used for signing                   │ ║
+║  │    "typ": "JWT"        ◄── Token type                                   │ ║
+║  │  }                                                                      │ ║
+║  └─────────────────────────────────────────────────────────────────────────┘ ║
+║                                                                              ║
+║  ┌─────────────────────────────────────────────────────────────────────────┐ ║
+║  │                           2. PAYLOAD (Purple)                           │ ║
+║  │  Base64 encoded JSON containing claims (user data)                      │ ║
+║  │                                                                         │ ║
+║  │  {                                                                      │ ║
+║  │    "sub": "user@example.com",  ◄── Subject (username/email)            │ ║
+║  │    "iat": 1707218000,          ◄── Issued At (Unix timestamp)          │ ║
+║  │    "exp": 1707304400           ◄── Expiration (Unix timestamp)         │ ║
+║  │  }                                                                      │ ║
+║  │                                                                         │ ║
+║  │  ⚠️  Payload is NOT encrypted, only encoded!                           │ ║
+║  │     Anyone can decode and read it. Never put secrets here.             │ ║
+║  └─────────────────────────────────────────────────────────────────────────┘ ║
+║                                                                              ║
+║  ┌─────────────────────────────────────────────────────────────────────────┐ ║
+║  │                          3. SIGNATURE (Blue)                            │ ║
+║  │  Cryptographic signature to verify authenticity                         │ ║
+║  │                                                                         │ ║
+║  │  HMACSHA256(                                                            │ ║
+║  │    base64UrlEncode(header) + "." + base64UrlEncode(payload),           │ ║
+║  │    secret_key   ◄── Only the server knows this!                        │ ║
+║  │  )                                                                      │ ║
+║  │                                                                         │ ║
+║  │  ✓ If anyone modifies header or payload, signature becomes invalid     │ ║
+║  │  ✓ Server can verify token wasn't tampered with                        │ ║
+║  └─────────────────────────────────────────────────────────────────────────┘ ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+### Request Flow Through Security Filter Chain
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    SECURITY FILTER CHAIN - REQUEST LIFECYCLE                   ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║   Incoming Request: GET /api/users/me                                         ║
+║   Headers: Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...                      ║
+║                                                                               ║
+║   ┌─────────────────────────────────────────────────────────────────────┐     ║
+║   │                                                                     │     ║
+║   ▼                                                                     │     ║
+║ ┌───────────────────────────────────────────────────────────────────┐   │     ║
+║ │                    JwtAuthenticationFilter                         │   │     ║
+║ │  ┌─────────────────────────────────────────────────────────────┐  │   │     ║
+║ │  │ 1. Extract Authorization header                              │  │   │     ║
+║ │  │    authHeader = request.getHeader("Authorization")           │  │   │     ║
+║ │  │                                                              │  │   │     ║
+║ │  │ 2. Check if starts with "Bearer "                           │  │   │     ║
+║ │  │    if (authHeader == null || !authHeader.startsWith("Bearer ")) │  │     ║
+║ │  │        → continue filter chain (no auth attempt)             │  │   │     ║
+║ │  │                                                              │  │   │     ║
+║ │  │ 3. Extract token (remove "Bearer " prefix)                  │  │   │     ║
+║ │  │    jwt = authHeader.substring(7)                            │  │   │     ║
+║ │  │                                                              │  │   │     ║
+║ │  │ 4. Extract username from token                              │  │   │     ║
+║ │  │    username = jwtService.extractUsername(jwt)               │  │   │     ║
+║ │  │                                                              │  │   │     ║
+║ │  │ 5. Load user from database                                  │  │   │     ║
+║ │  │    userDetails = userDetailsService.loadUserByUsername()    │  │   │     ║
+║ │  │                                                              │  │   │     ║
+║ │  │ 6. Validate token                                           │  │   │     ║
+║ │  │    if (jwtService.isTokenValid(jwt, userDetails))           │  │   │     ║
+║ │  │        → signature valid? expiration ok?                     │  │   │     ║
+║ │  │                                                              │  │   │     ║
+║ │  │ 7. Create Authentication object                             │  │   │     ║
+║ │  │    authToken = new UsernamePasswordAuthenticationToken(     │  │   │     ║
+║ │  │        userDetails, null, userDetails.getAuthorities()      │  │   │     ║
+║ │  │    )                                                        │  │   │     ║
+║ │  │                                                              │  │   │     ║
+║ │  │ 8. Set SecurityContext                                      │  │   │     ║
+║ │  │    SecurityContextHolder.getContext().setAuthentication()   │  │   │     ║
+║ │  └─────────────────────────────────────────────────────────────┘  │   │     ║
+║ └───────────────────────────────────────────────────────────────────┘   │     ║
+║                                     │                                   │     ║
+║                                     ▼                                   │     ║
+║ ┌───────────────────────────────────────────────────────────────────┐   │     ║
+║ │                    AuthorizationFilter                             │   │     ║
+║ │  ┌─────────────────────────────────────────────────────────────┐  │   │     ║
+║ │  │ Check if user has required permissions                       │  │   │     ║
+║ │  │                                                              │  │   │     ║
+║ │  │ Path: /api/users/**                                         │  │   │     ║
+║ │  │ Required: authenticated()                                   │  │   │     ║
+║ │  │ User has: ROLE_USER                                         │  │   │     ║
+║ │  │ Result: ✓ ALLOWED                                           │  │   │     ║
+║ │  └─────────────────────────────────────────────────────────────┘  │   │     ║
+║ └───────────────────────────────────────────────────────────────────┘   │     ║
+║                                     │                                   │     ║
+║                                     ▼                                   │     ║
+║ ┌───────────────────────────────────────────────────────────────────┐   │     ║
+║ │                       Controller                                   │   │     ║
+║ │  ┌─────────────────────────────────────────────────────────────┐  │   │     ║
+║ │  │ @GetMapping("/me")                                          │  │   │     ║
+║ │  │ public UserResponse getCurrentUser(                         │  │   │     ║
+║ │  │     @AuthenticationPrincipal User user  ◄── Injected from  │  │   │     ║
+║ │  │ ) {                                          SecurityContext│  │   │     ║
+║ │  │     return UserResponse.fromEntity(user);                   │  │   │     ║
+║ │  │ }                                                           │  │   │     ║
+║ │  └─────────────────────────────────────────────────────────────┘  │   │     ║
+║ └───────────────────────────────────────────────────────────────────┘   │     ║
+║                                     │                                   │     ║
+║                                     ▼                                   │     ║
+║   Response: { "id": 1, "name": "User", "email": "user@example.com" }────┘     ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+### Authentication vs Authorization
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                     AUTHENTICATION vs AUTHORIZATION                            ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║   ┌─────────────────────────────────┬─────────────────────────────────────┐   ║
+║   │         AUTHENTICATION          │           AUTHORIZATION             │   ║
+║   │         (WHO are you?)          │         (WHAT can you do?)          │   ║
+║   ├─────────────────────────────────┼─────────────────────────────────────┤   ║
+║   │                                 │                                     │   ║
+║   │  "I am user@example.com"        │  "Can I access /api/admin?"         │   ║
+║   │                                 │                                     │   ║
+║   │  Verified by:                   │  Checked by:                        │   ║
+║   │  • Valid JWT token              │  • User's roles/permissions         │   ║
+║   │  • Token not expired            │  • Endpoint security rules          │   ║
+║   │  • Signature matches            │  • @PreAuthorize annotations        │   ║
+║   │                                 │                                     │   ║
+║   │  Happens in:                    │  Happens in:                        │   ║
+║   │  JwtAuthenticationFilter        │  AuthorizationFilter                │   ║
+║   │                                 │  @PreAuthorize checks               │   ║
+║   │                                 │                                     │   ║
+║   └─────────────────────────────────┴─────────────────────────────────────┘   ║
+║                                                                               ║
+║   Example Flow:                                                               ║
+║   ┌─────────────────────────────────────────────────────────────────────────┐ ║
+║   │                                                                         │ ║
+║   │  Request: GET /api/admin/dashboard                                      │ ║
+║   │  Token belongs to: user@example.com (ROLE_USER)                         │ ║
+║   │                                                                         │ ║
+║   │  Step 1 - Authentication: ✓ PASS                                        │ ║
+║   │           Token is valid, user exists                                   │ ║
+║   │                                                                         │ ║
+║   │  Step 2 - Authorization: ✗ FAIL                                        │ ║
+║   │           /api/admin/** requires ROLE_ADMIN                             │ ║
+║   │           User only has ROLE_USER                                       │ ║
+║   │                                                                         │ ║
+║   │  Result: 403 Forbidden                                                  │ ║
+║   │                                                                         │ ║
+║   └─────────────────────────────────────────────────────────────────────────┘ ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+### Security Decision Tree
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                         SECURITY DECISION TREE                                 ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║                           Incoming Request                                     ║
+║                                  │                                            ║
+║                                  ▼                                            ║
+║                    ┌─────────────────────────┐                                ║
+║                    │ Is path /api/auth/** or │                                ║
+║                    │ /api/public/** ?        │                                ║
+║                    └───────────┬─────────────┘                                ║
+║                          │           │                                        ║
+║                         YES          NO                                       ║
+║                          │           │                                        ║
+║                          ▼           ▼                                        ║
+║                    ┌─────────┐ ┌─────────────────────────┐                    ║
+║                    │ ALLOW   │ │ Has Authorization       │                    ║
+║                    │ (Public)│ │ header with Bearer?     │                    ║
+║                    └─────────┘ └───────────┬─────────────┘                    ║
+║                                      │           │                            ║
+║                                     YES          NO                           ║
+║                                      │           │                            ║
+║                                      ▼           ▼                            ║
+║                    ┌─────────────────────┐ ┌─────────────┐                    ║
+║                    │ Is token signature  │ │ 401         │                    ║
+║                    │ valid?              │ │ Unauthorized│                    ║
+║                    └─────────┬───────────┘ └─────────────┘                    ║
+║                        │           │                                          ║
+║                       YES          NO                                         ║
+║                        │           │                                          ║
+║                        ▼           ▼                                          ║
+║              ┌─────────────────┐ ┌─────────────┐                              ║
+║              │ Is token        │ │ 401         │                              ║
+║              │ expired?        │ │ Unauthorized│                              ║
+║              └────────┬────────┘ └─────────────┘                              ║
+║                 │           │                                                 ║
+║                 NO         YES                                                ║
+║                 │           │                                                 ║
+║                 ▼           ▼                                                 ║
+║     ┌─────────────────┐ ┌─────────────┐                                       ║
+║     │ Does user have  │ │ 401         │                                       ║
+║     │ required role?  │ │ Unauthorized│                                       ║
+║     └────────┬────────┘ └─────────────┘                                       ║
+║         │         │                                                           ║
+║        YES        NO                                                          ║
+║         │         │                                                           ║
+║         ▼         ▼                                                           ║
+║   ┌─────────┐ ┌─────────┐                                                     ║
+║   │ ALLOW   │ │ 403     │                                                     ║
+║   │ Request │ │Forbidden│                                                     ║
+║   └─────────┘ └─────────┘                                                     ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+### Password Storage (BCrypt)
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                         BCRYPT PASSWORD HASHING                                ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║   Registration:                                                               ║
+║   ┌─────────────────────────────────────────────────────────────────────────┐ ║
+║   │                                                                         │ ║
+║   │   Plain Password: "Password123"                                         │ ║
+║   │                        │                                                │ ║
+║   │                        ▼                                                │ ║
+║   │              ┌─────────────────────┐                                    │ ║
+║   │              │  BCrypt Encoder     │                                    │ ║
+║   │              │  + Random Salt      │                                    │ ║
+║   │              └──────────┬──────────┘                                    │ ║
+║   │                        │                                                │ ║
+║   │                        ▼                                                │ ║
+║   │   Stored Hash: "$2a$10$N9qo8uLOickgx2ZMRZoMy..."                        │ ║
+║   │                 ├──┤├─┤├──────────────────────────┤                     │ ║
+║   │                 │   │  └── Hashed password + salt                       │ ║
+║   │                 │   └───── Cost factor (10 = 2^10 iterations)           │ ║
+║   │                 └──────── Algorithm identifier                          │ ║
+║   │                                                                         │ ║
+║   └─────────────────────────────────────────────────────────────────────────┘ ║
+║                                                                               ║
+║   Login Verification:                                                         ║
+║   ┌─────────────────────────────────────────────────────────────────────────┐ ║
+║   │                                                                         │ ║
+║   │   Input: "Password123"    Stored: "$2a$10$N9qo8uLO..."                  │ ║
+║   │              │                           │                              │ ║
+║   │              └─────────┬─────────────────┘                              │ ║
+║   │                        │                                                │ ║
+║   │                        ▼                                                │ ║
+║   │              ┌─────────────────────┐                                    │ ║
+║   │              │  BCrypt.matches()   │                                    │ ║
+║   │              │  - Extract salt     │                                    │ ║
+║   │              │  - Hash input       │                                    │ ║
+║   │              │  - Compare hashes   │                                    │ ║
+║   │              └──────────┬──────────┘                                    │ ║
+║   │                        │                                                │ ║
+║   │                        ▼                                                │ ║
+║   │                  ✓ Match = Login Success                                │ ║
+║   │                  ✗ No Match = 401 Unauthorized                          │ ║
+║   │                                                                         │ ║
+║   └─────────────────────────────────────────────────────────────────────────┘ ║
+║                                                                               ║
+║   Why BCrypt?                                                                 ║
+║   • Automatic salting (prevents rainbow table attacks)                        ║
+║   • Configurable cost factor (slow = harder to brute force)                   ║
+║   • One-way function (cannot reverse hash to get password)                    ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+## Architecture
 
 ## Project Structure
 
