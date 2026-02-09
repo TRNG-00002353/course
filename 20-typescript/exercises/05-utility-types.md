@@ -526,50 +526,58 @@ function applyBulkDiscount(
 
 ---
 
-## Exercise 5.6: NonNullable and Custom Utility Types
+## Exercise 5.6: NonNullable and Practical Patterns
 
-Handle nullable types and create custom utilities.
+Handle nullable types effectively.
 
 ```typescript
 // TODO: Implement these exercises
 
-// 1. Use NonNullable
+// 1. Use NonNullable to remove null/undefined
 type MaybeUser = { id: number; name: string } | null | undefined;
 type DefiniteUser = // TODO
 
-// 2. Create custom utility: Nullable<T>
+// 2. Create a simple Nullable type alias
 type Nullable<T> = // TODO: Make T nullable
 
-// 3. Create custom utility: OptionalKeys<T>
-// Extracts keys that are optional
-type OptionalKeys<T> = // TODO
+// 3. Filter null values from array
+function filterNullish<T>(array: (T | null | undefined)[]): T[] {
+    // TODO: Return only non-null values with proper typing
+}
 
-// 4. Create custom utility: RequiredKeys<T>
-// Extracts keys that are required
-type RequiredKeys<T> = // TODO
-
-// 5. Create custom utility: DeepPartial<T>
-// Makes all properties optional recursively
-type DeepPartial<T> = // TODO
-
-// Test with:
-interface Config {
-    api: {
-        url: string;
-        timeout: number;
-        headers: {
-            authorization?: string;
-            contentType: string;
-        };
-    };
-    features: {
-        darkMode: boolean;
-        notifications: boolean;
+// 4. Safe property access with fallback
+interface User {
+    id: number;
+    name: string;
+    email?: string;
+    profile?: {
+        bio?: string;
+        avatar?: string;
     };
 }
 
-type PartialConfig = DeepPartial<Config>;
-// All nested properties should be optional
+function getUserEmail(user: User): string {
+    // TODO: Return email or "No email"
+}
+
+function getUserBio(user: User): string {
+    // TODO: Return bio or "No bio available"
+}
+
+// 5. Type-safe object update
+function updateUser(user: User, updates: Partial<User>): User {
+    // TODO: Merge updates into user
+}
+
+// Test:
+const users: (User | null)[] = [
+    { id: 1, name: "Alice", email: "alice@example.com" },
+    null,
+    { id: 2, name: "Bob" }
+];
+
+const validUsers = filterNullish(users);
+console.log(validUsers.length);  // 2
 ```
 
 <details>
@@ -581,75 +589,60 @@ type MaybeUser = { id: number; name: string } | null | undefined;
 type DefiniteUser = NonNullable<MaybeUser>;
 // Result: { id: number; name: string }
 
-// 2. Custom utility: Nullable<T>
+// 2. Simple Nullable type
 type Nullable<T> = T | null | undefined;
 
 type NullableString = Nullable<string>;  // string | null | undefined
 
-// 3. Custom utility: OptionalKeys<T>
-type OptionalKeys<T> = {
-    [K in keyof T]-?: undefined extends T[K] ? K : never;
-}[keyof T];
-
-interface Example {
-    required: string;
-    optional?: number;
-    alsoOptional?: boolean;
-}
-
-type OptionalExampleKeys = OptionalKeys<Example>;  // "optional" | "alsoOptional"
-
-// 4. Custom utility: RequiredKeys<T>
-type RequiredKeys<T> = {
-    [K in keyof T]-?: undefined extends T[K] ? never : K;
-}[keyof T];
-
-type RequiredExampleKeys = RequiredKeys<Example>;  // "required"
-
-// 5. Custom utility: DeepPartial<T>
-type DeepPartial<T> = {
-    [P in keyof T]?: T[P] extends object
-        ? DeepPartial<T[P]>
-        : T[P];
-};
-
-// Test interface
-interface Config {
-    api: {
-        url: string;
-        timeout: number;
-        headers: {
-            authorization?: string;
-            contentType: string;
-        };
-    };
-    features: {
-        darkMode: boolean;
-        notifications: boolean;
-    };
-}
-
-type PartialConfig = DeepPartial<Config>;
-
-// Valid: all properties are optional at every level
-const minimalConfig: PartialConfig = {
-    api: {
-        url: "https://api.example.com"
-        // timeout is optional
-        // headers is optional
-    }
-    // features is optional
-};
-
-const emptyConfig: PartialConfig = {};  // Also valid!
-
-// Function using NonNullable in array filtering
+// 3. Filter null values with type guard
 function filterNullish<T>(array: (T | null | undefined)[]): T[] {
     return array.filter((item): item is T => item != null);
 }
 
 const mixed = ["a", null, "b", undefined, "c"];
 const strings = filterNullish(mixed);  // string[]
+console.log(strings);  // ["a", "b", "c"]
+
+// 4. Safe property access
+interface User {
+    id: number;
+    name: string;
+    email?: string;
+    profile?: {
+        bio?: string;
+        avatar?: string;
+    };
+}
+
+function getUserEmail(user: User): string {
+    return user.email ?? "No email";
+}
+
+function getUserBio(user: User): string {
+    return user.profile?.bio ?? "No bio available";
+}
+
+// 5. Type-safe object update using Partial
+function updateUser(user: User, updates: Partial<User>): User {
+    return { ...user, ...updates };
+}
+
+// Test
+const users: (User | null)[] = [
+    { id: 1, name: "Alice", email: "alice@example.com" },
+    null,
+    { id: 2, name: "Bob" }
+];
+
+const validUsers = filterNullish(users);
+console.log(validUsers.length);  // 2
+
+const user = validUsers[0];
+console.log(getUserEmail(user));  // "alice@example.com"
+console.log(getUserBio(user));    // "No bio available"
+
+const updated = updateUser(user, { email: "new@example.com" });
+console.log(updated.email);  // "new@example.com"
 ```
 
 </details>

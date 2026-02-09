@@ -418,118 +418,111 @@ type Flatten<T> = T extends Array<infer U> ? U : T;
 
 ---
 
-## Exercise 4.6: Readonly and Immutability
+## Exercise 4.6: Readonly Properties
 
-Create immutable data structures.
+Work with immutable data structures.
 
 ```typescript
-// TODO: Make these interfaces immutable
+// TODO: Make these interfaces use readonly
 
+// 1. Create an interface with readonly properties
 interface Config {
-    apiUrl: string;
-    timeout: number;
-    features: string[];
+    // Make apiUrl and version readonly, timeout can be changed
 }
 
+// 2. Use the Readonly utility type
 interface User {
     id: number;
     name: string;
-    settings: {
-        theme: string;
-        notifications: boolean;
-    };
+    email: string;
 }
 
-// 1. Create a readonly version of Config
-type ReadonlyConfig = // TODO
+type ReadonlyUser = // TODO: Use Readonly<T>
 
-// 2. Create a deeply readonly version of User
-type DeepReadonlyUser = // TODO (hint: use Readonly recursively)
-
-// 3. Create a function that freezes an object deeply
-function deepFreeze<T>(obj: T): Readonly<T> {
-    // TODO
+// 3. Create an interface with a readonly array
+interface Team {
+    name: string;
+    members: // readonly array of strings
 }
 
-// 4. Demonstrate that readonly prevents modification
-const config: ReadonlyConfig = {
+// 4. Demonstrate readonly behavior
+const config: Config = {
     apiUrl: "https://api.example.com",
-    timeout: 5000,
-    features: ["auth", "logging"]
+    version: "1.0",
+    timeout: 5000
 };
 
-// This should cause a TypeScript error:
+// Which of these should cause errors?
+// config.apiUrl = "new-url";
 // config.timeout = 10000;
+
+// 5. Create a function that returns a readonly object
+function createImmutableUser(name: string, email: string): ReadonlyUser {
+    // TODO
+}
 ```
 
 <details>
 <summary>Solution</summary>
 
 ```typescript
+// 1. Interface with readonly properties
 interface Config {
-    apiUrl: string;
-    timeout: number;
-    features: string[];
+    readonly apiUrl: string;
+    readonly version: string;
+    timeout: number;  // Can be modified
 }
 
+// 2. Use Readonly utility type
 interface User {
     id: number;
     name: string;
-    settings: {
-        theme: string;
-        notifications: boolean;
-    };
+    email: string;
 }
 
-// 1. Readonly version of Config
-type ReadonlyConfig = Readonly<Config>;
-// Note: features array is still mutable internally!
+type ReadonlyUser = Readonly<User>;
+// All properties become readonly
 
-// 2. Deeply readonly version (custom type)
-type DeepReadonly<T> = {
-    readonly [P in keyof T]: T[P] extends object
-        ? DeepReadonly<T[P]>
-        : T[P];
-};
-
-type DeepReadonlyUser = DeepReadonly<User>;
-
-// 3. Deep freeze function
-function deepFreeze<T extends object>(obj: T): Readonly<T> {
-    Object.keys(obj).forEach(key => {
-        const value = (obj as Record<string, unknown>)[key];
-        if (value && typeof value === "object") {
-            deepFreeze(value as object);
-        }
-    });
-    return Object.freeze(obj);
+// 3. Interface with readonly array
+interface Team {
+    name: string;
+    readonly members: readonly string[];
 }
 
 // 4. Demonstration
-const config: ReadonlyConfig = {
+const config: Config = {
     apiUrl: "https://api.example.com",
-    timeout: 5000,
-    features: ["auth", "logging"]
+    version: "1.0",
+    timeout: 5000
 };
 
-// These would cause TypeScript errors:
-// config.timeout = 10000;  // Error: Cannot assign to 'timeout'
-// config.apiUrl = "new";   // Error: Cannot assign to 'apiUrl'
+// config.apiUrl = "new-url";  // Error: Cannot assign to 'apiUrl'
+// config.version = "2.0";     // Error: Cannot assign to 'version'
+config.timeout = 10000;        // OK: timeout is not readonly
 
-// Note: This still works with Readonly (shallow):
-// config.features.push("new");  // No error! Array methods still work
-
-// For true deep immutability:
-const user: DeepReadonlyUser = {
-    id: 1,
-    name: "Alice",
-    settings: {
-        theme: "dark",
-        notifications: true
-    }
+const team: Team = {
+    name: "Development",
+    members: ["Alice", "Bob"]
 };
 
-// user.settings.theme = "light";  // Error with DeepReadonly!
+// team.members.push("Charlie");  // Error: readonly array
+// team.members = [];              // Error: readonly property
+team.name = "Engineering";         // OK: name is not readonly
+
+// 5. Function returning readonly object
+function createImmutableUser(name: string, email: string): ReadonlyUser {
+    return {
+        id: Date.now(),
+        name,
+        email
+    };
+}
+
+const user = createImmutableUser("Alice", "alice@example.com");
+// user.name = "Bob";  // Error: Cannot assign to 'name'
+
+console.log(user.name);   // "Alice" - can still read
+console.log(user.email);  // "alice@example.com"
 ```
 
 </details>

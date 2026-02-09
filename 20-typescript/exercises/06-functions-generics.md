@@ -80,103 +80,7 @@ const uppercase: Transformer = (s) => s.toUpperCase();
 
 ---
 
-## Exercise 6.2: Function Overloads
-
-Create function overloads for multiple signatures.
-
-```typescript
-// TODO: Add function overloads
-
-// 1. Function that parses either string to number, or returns number as-is
-function toNumber(value) {
-    if (typeof value === "string") {
-        return parseFloat(value);
-    }
-    return value;
-}
-
-// 2. Function that creates an element or elements
-//    - Single tag: returns one element
-//    - Array of tags: returns array of elements
-function createElement(tag) {
-    if (Array.isArray(tag)) {
-        return tag.map(t => document.createElement(t));
-    }
-    return document.createElement(tag);
-}
-
-// 3. Function with different return based on options
-//    - With raw: true, returns raw data string
-//    - Without raw or raw: false, returns parsed object
-function fetchData(url, options?) {
-    // Implementation
-}
-```
-
-<details>
-<summary>Solution</summary>
-
-```typescript
-// 1. toNumber overloads
-function toNumber(value: string): number;
-function toNumber(value: number): number;
-function toNumber(value: string | number): number {
-    if (typeof value === "string") {
-        return parseFloat(value);
-    }
-    return value;
-}
-
-// Usage:
-const a: number = toNumber("42");     // Returns number
-const b: number = toNumber(42);       // Returns number
-
-// 2. createElement overloads
-function createElement(tag: string): HTMLElement;
-function createElement(tag: string[]): HTMLElement[];
-function createElement(tag: string | string[]): HTMLElement | HTMLElement[] {
-    if (Array.isArray(tag)) {
-        return tag.map(t => document.createElement(t));
-    }
-    return document.createElement(tag);
-}
-
-// Usage:
-const div: HTMLElement = createElement("div");
-const elements: HTMLElement[] = createElement(["div", "span", "p"]);
-
-// 3. fetchData with options overloads
-interface FetchOptions {
-    raw?: boolean;
-    timeout?: number;
-}
-
-function fetchData(url: string): Promise<object>;
-function fetchData(url: string, options: { raw: true }): Promise<string>;
-function fetchData(url: string, options: { raw?: false }): Promise<object>;
-function fetchData(url: string, options?: FetchOptions): Promise<string | object> {
-    // Implementation
-    return fetch(url).then(res => {
-        if (options?.raw) {
-            return res.text();
-        }
-        return res.json();
-    });
-}
-
-// Usage:
-async function example() {
-    const data: object = await fetchData("/api/users");
-    const raw: string = await fetchData("/api/users", { raw: true });
-    const parsed: object = await fetchData("/api/users", { raw: false });
-}
-```
-
-</details>
-
----
-
-## Exercise 6.3: Basic Generics
+## Exercise 6.2: Basic Generics
 
 Create generic functions.
 
@@ -266,7 +170,7 @@ const pair = makePair("name", 42);  // type: [string, number]
 
 ---
 
-## Exercise 6.4: Generic Constraints
+## Exercise 6.3: Generic Constraints
 
 Use extends to constrain generic types.
 
@@ -380,7 +284,7 @@ const cloned = clone(original);
 
 ---
 
-## Exercise 6.5: Generic Interfaces and Classes
+## Exercise 6.4: Generic Interfaces and Classes
 
 Create generic interfaces and classes.
 
@@ -590,7 +494,7 @@ emitter.emit("login", "user-123", new Date());
 
 ---
 
-## Exercise 6.6: Advanced Generic Patterns
+## Exercise 6.5: Practical Generic Patterns
 
 Implement advanced generic patterns.
 
