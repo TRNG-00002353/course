@@ -1,161 +1,189 @@
-# Angular (v16)
+# Angular (v16+)
 
 ## Overview
-Angular is a comprehensive framework for building single-page applications with TypeScript.
+Angular is a comprehensive TypeScript-based framework for building single-page applications (SPAs).
 
 ## Learning Objectives
-By the end of this module, you will understand and be able to apply the key concepts and practices of Angular (v16).
+By the end of this module, you will be able to:
+- Build components with templates, styles, and data binding
+- Use directives and pipes to manipulate DOM and transform data
+- Implement services and dependency injection
+- Configure routing with guards and lazy loading
+- Make HTTP requests using RxJS and HttpClient
+- Build forms with validation
+- Test components and services
 
-## Topics Covered
+## Duration
+**7-8 Days** (excluding review)
 
-### 1. [Angular Introduction](./topics/01-angular-introduction.md)
-- What is Angular?
-- Setup and Installation
-- Angular CLI
-- Angular Project Structure
-- Single Page Applications (SPA)
-- Webpack
-- Node.js and npm
+---
 
-### 2. [Components](./topics/02-components.md)
-- Component Lifecycle
-- @Component Decorator
-- Component Styles
-- Change Detection
-- Dynamic Components
-- Event Emitters
-- Sharing Data Between Components
+## Progressive Topic Flow
 
-### 3. [Modules](./topics/03-modules.md)
-- NgModule Decorator
-- Root Module
-- Feature Modules
-- Shared Modules
+### Day 1: Introduction & Setup
+**[01-introduction.md](./topics/01-introduction.md)**
+- What is Angular? SPA concepts
+- Setup and CLI commands
+- Project structure
+- Webpack overview
+- Templates and interpolation
 
-### 4. [Directives and Pipes](./topics/04-directives-and-pipes.md)
-- Structural Directives (ngIf, ngFor, ngSwitch)
-- Attribute Directives (ngClass, ngStyle, ngModel)
-- Built-in Pipes
-- Custom Pipes
+### Day 2: Components Basics
+**[02-components-basics.md](./topics/02-components-basics.md)**
+- @Component decorator (selector, template, styles)
+- Interpolation `{{ }}`
+- Property binding `[property]`
+- Event binding `(event)`
+- Template reference variables `#ref`
+- Two-way binding `[(ngModel)]`
+- Component styles and encapsulation
 
-### 5. [Dependency Injection](./topics/05-dependency-injection.md)
-- DI in Angular
-- Injector Hierarchy
-- DI Providers
-- Services
-- Creating and Injecting Services
-- Service Communication
+### Day 3: Directives & Pipes
+**[03-directives-pipes.md](./topics/03-directives-pipes.md)**
+- Structural directives (`*ngIf`, `*ngFor`, `*ngSwitch`)
+- Attribute directives (`ngClass`, `ngStyle`)
+- `ng-container` and `ng-template`
+- Built-in pipes (date, currency, uppercase, async)
+- Custom pipes
 
-### 6. [Routing](./topics/06-routing.md)
-- Router Module
-- Route Guards (CanActivate, CanDeactivate, Resolve)
-- Routing and Navigation
-- Lazy Loading
+### Day 4: Component Communication & Services
+**[04-component-communication-services.md](./topics/04-component-communication-services.md)**
+- `@Input()` - Parent to child
+- `@Output()` and EventEmitter - Child to parent
+- `@ViewChild` - Direct access
+- Dependency Injection basics
+- Creating and injecting services
+- Injector hierarchy
+- Service communication (shared state)
+
+### Day 5: Routing
+**[05-routing.md](./topics/05-routing.md)**
+- RouterModule configuration
+- `routerLink` and navigation
+- Route parameters and query params
+- Route guards (CanActivate, CanDeactivate)
+- Lazy loading modules
 - Signals (Angular 16+)
 
-### 7. [RxJS Fundamentals](./topics/07-rxjs-fundamentals.md)
-- Observables and Subscriptions
-- Pipe and Operators (map, filter, catchError)
+### Day 6: RxJS & HTTP Client
+**[06-rxjs-http.md](./topics/06-rxjs-http.md)**
+- Observables and subscriptions
+- RxJS operators (map, filter, switchMap, catchError)
 - Subjects and BehaviorSubject
-- Unsubscribing and Memory Leaks
-- Common Patterns (async pipe, takeUntil)
+- Async pipe
+- HttpClient (GET, POST, PUT, DELETE)
+- Error handling
+- HTTP interceptors
 
-### 8. [HTTP Client](./topics/08-http-client.md)
-- Making HTTP Requests (GET, POST, PUT, DELETE)
-- Error Handling
-- HTTP Interceptors
-- Best Practices
+### Day 7: Forms & State Management
+**[07-forms-state.md](./topics/07-forms-state.md)**
+- Template-driven forms
+- Reactive forms (FormGroup, FormControl, FormBuilder)
+- Form validation (built-in and custom)
+- Dynamic forms
+- State management with BehaviorSubject pattern
 
-### 9. [Forms](./topics/09-forms.md)
-- Template-Driven Forms
-- Reactive Forms
-- Form Validation
-- Custom Validators
-- Dynamic Forms
+### Day 8: Advanced Topics (Reference)
+**[08-advanced.md](./topics/08-advanced.md)**
+- Component lifecycle hooks (full)
+- Change detection strategies
+- Dynamic components
+- NgModule deep dive (Feature, Shared, Core modules)
 
-### 10. [State Management](./topics/10-state-management.md)
-- Application State
-- State Management Patterns
-- Service-based State
-- BehaviorSubject Pattern
-
-### 11. [Testing and Debugging](./topics/11-testing-and-debugging.md)
-- Jasmine Framework
-- Karma Test Runner
-- Testing Components, Services, and Pipes
+### Day 9: Testing & Debugging
+**[09-testing.md](./topics/09-testing.md)**
+- Jasmine framework
+- Karma test runner
+- Testing components
+- Testing services
+- Testing pipes
 - Debugging with Chrome DevTools
 - Debugging with VS Code
 
-## Key Concepts
-For detailed explanations and comprehensive code examples, see the individual topic files linked above.
-
-## Exercises
-See the [exercises](./exercises/) directory for hands-on practice problems and solutions.
+---
 
 ## Quick Reference
 
-### Essential Commands
+### Essential CLI Commands
 ```bash
-# Create new Angular app
-ng new my-app
+# Create new project
+ng new my-app --routing --style=css
 
-# Serve application
-ng serve
+# Start development server
+ng serve --open
 
 # Generate component
-ng g c component-name
+ng g c components/header
 
 # Generate service
-ng g s service-name
+ng g s services/user
 
-# Build for production
-ng build --configuration production
+# Generate module
+ng g m features/products --route products --module app
 
 # Run tests
 ng test
 
-# Run linting
-ng lint
+# Build for production
+ng build --configuration production
 ```
 
 ### Key Concepts Summary
 
 | Concept | Description |
 |---------|-------------|
-| Components | Building blocks with templates, styles, and logic |
-| Modules | Containers for organizing related functionality |
+| Components | Building blocks with template, styles, and logic |
+| Directives | Add behavior to elements (`*ngIf`, `*ngFor`, `ngClass`) |
+| Pipes | Transform data for display (`date`, `currency`, `async`) |
 | Services | Reusable business logic and data management |
+| DI | Dependency injection for loose coupling |
 | Routing | Navigation between views |
+| RxJS | Reactive programming with Observables |
 | HTTP Client | Communication with backend APIs |
-| Forms | User input handling (Template-driven & Reactive) |
-| Pipes | Data transformation in templates |
-| Directives | DOM manipulation and behavior |
+| Forms | User input (Template-driven & Reactive) |
+| Testing | Jasmine + Karma for unit tests |
+
+---
+
+## Curriculum Alignment
+
+This module covers all topics required for **Week 9-10** of the curriculum:
+
+| Curriculum Topic | Covered In |
+|------------------|------------|
+| Introduction, Setup, SPA, Webpack | Day 1 |
+| Components, Styles, Templates | Day 2 |
+| Change Detection, Dynamic Components | Day 8 |
+| Event Emitters, Data Sharing | Day 4 |
+| Modules (NgModule, Feature, Shared) | Day 8 |
+| Structural/Attribute Directives | Day 3 |
+| Pipes (Built-in, Custom) | Day 3 |
+| DI, Services, Injector Hierarchy | Day 4 |
+| Routing, Guards, Lazy Loading | Day 5 |
+| Signals (Angular 16+) | Day 5 |
+| RxJS (Observables, Operators, Subjects) | Day 6 |
+| HTTP Client, Interceptors | Day 6 |
+| Forms (Template, Reactive, Validation) | Day 7 |
+| State Management (BehaviorSubject) | Day 7 |
+| Testing (Karma, Jasmine) | Day 9 |
+| Debugging (DevTools, VS Code) | Day 9 |
+
+---
 
 ## Additional Resources
 
 ### Official Documentation
 - [Angular Official Documentation](https://angular.io/docs)
 - [Angular CLI Documentation](https://angular.io/cli)
-- [Angular API Reference](https://angular.io/api)
 - [RxJS Documentation](https://rxjs.dev/)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 
 ### Learning Resources
-- [Angular University](https://angular-university.io/)
 - [Angular Official Tutorial - Tour of Heroes](https://angular.io/tutorial)
-- [Angular Official Style Guide](https://angular.io/guide/styleguide)
-
-### Community
-- [Angular Blog](https://blog.angular.io/)
-- [Stack Overflow - Angular Tag](https://stackoverflow.com/questions/tagged/angular)
-- [Angular Discord Community](https://discord.gg/angular)
-- [Angular GitHub Repository](https://github.com/angular/angular)
-
-## Assessment
-Make sure you are comfortable with all topics listed above before proceeding to the next module.
-
-## Next Steps
-Continue to the next module in the curriculum sequence.
+- [Angular Style Guide](https://angular.io/guide/styleguide)
 
 ---
-**Time Estimate:** 2 weeks | **Difficulty:** Intermediate | **Prerequisites:** Previous modules
+
+## Assessment
+Ensure you are comfortable with all topics before proceeding to the next module.
+
+**Time Estimate:** 7-8 days | **Difficulty:** Intermediate | **Prerequisites:** TypeScript
