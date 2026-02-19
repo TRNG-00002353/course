@@ -573,171 +573,520 @@ export class AppComponent {
 
 ## State Management
 
-### Service-Based State (BehaviorSubject)
+### What is Application State?
+
+**State** is data that changes over time and affects what users see in your application. Think of it as the "memory" of your application.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    APPLICATION STATE                             │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────┐   ┌─────────────┐   ┌─────────────────────┐    │
+│  │ UI State    │   │ User State  │   │ Server/Domain State │    │
+│  │─────────────│   │─────────────│   │─────────────────────│    │
+│  │ • Is modal  │   │ • Logged in │   │ • Products list     │    │
+│  │   open?     │   │   user info │   │ • Orders            │    │
+│  │ • Selected  │   │ • User      │   │ • Cart items        │    │
+│  │   tab       │   │   preferences│  │ • Comments          │    │
+│  │ • Dark/Light│   │ • Auth token│   │ • Search results    │    │
+│  │   theme     │   │             │   │                     │    │
+│  └─────────────┘   └─────────────┘   └─────────────────────┘    │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Types of State
+
+| Type | Description | Example | Scope |
+|------|-------------|---------|-------|
+| **Local/Component State** | State owned by one component | Form input, dropdown open | Single component |
+| **Shared State** | State needed by multiple components | Shopping cart, user info | Multiple components |
+| **Server State** | Data from backend APIs | Product list, user profile | Entire app |
+| **URL State** | Current route and parameters | `/products/42`, `?sort=price` | Browser URL |
+
+### The Problem: Data Sharing Between Components
+
+Without state management, sharing data becomes complex:
+
+```
+THE PROBLEM: Passing data through many levels (Props Drilling)
+──────────────────────────────────────────────────────────────
+
+       AppComponent (has user data)
+            │
+            │ [user]="user"
+            ▼
+       LayoutComponent (doesn't need user, just passes it)
+            │
+            │ [user]="user"
+            ▼
+       SidebarComponent (doesn't need user, just passes it)
+            │
+            │ [user]="user"
+            ▼
+       ProfileWidget (finally uses user!)
+
+Problem: Every component in between must know about "user"
+         even if they don't use it!
+```
+
+### State Management Patterns
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│              STATE MANAGEMENT PATTERNS                             │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  1. Component State        2. Service + Subject    3. Redux/NgRx  │
+│     (for local data)         (for shared data)       (for large   │
+│                                                        apps)       │
+│  ┌─────────────┐          ┌─────────────────┐     ┌─────────────┐ │
+│  │  Component  │          │    Service      │     │    Store    │ │
+│  │  ─────────  │          │  ───────────    │     │  ─────────  │ │
+│  │  state = {} │          │ BehaviorSubject │     │  Actions    │ │
+│  │             │          │       ↓         │     │  Reducers   │ │
+│  │ Only this   │          │  Components     │     │  Effects    │ │
+│  │ component   │          │  subscribe      │     │  Selectors  │ │
+│  │ uses it     │          │                 │     │             │ │
+│  └─────────────┘          └─────────────────┘     └─────────────┘ │
+│                                                                    │
+│  Best for:                Best for:              Best for:         │
+│  • Form inputs            • Auth state           • Enterprise apps │
+│  • UI toggles             • Shopping cart        • Complex flows   │
+│  • Local flags            • User preferences     • Time-travel     │
+│                           • Shared data            debugging       │
+│                                                                    │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+For most Angular applications, **Service + BehaviorSubject** is the recommended approach.
+
+---
+
+### Understanding BehaviorSubject (The Foundation)
+
+Before diving into state management, let's understand `BehaviorSubject`:
+
+```
+BehaviorSubject vs Regular Variable
+───────────────────────────────────
+
+Regular Variable:
+  let count = 0;
+  count = 5;  // Only the code that runs THIS LINE knows about the change
+              // Other parts of the app DON'T know count changed!
+
+BehaviorSubject:
+  count$ = new BehaviorSubject<number>(0);
+  count$.next(5);  // EVERYONE subscribed gets notified automatically!
+
+         ┌──────────────────┐
+         │  BehaviorSubject │
+         │    value: 5      │
+         └────────┬─────────┘
+                  │ broadcasts to all subscribers
+        ┌─────────┼─────────┐
+        ▼         ▼         ▼
+   Component1  Component2  Component3
+   "I see 5!"  "I see 5!"  "I see 5!"
+```
+
+#### BehaviorSubject Key Characteristics
 
 ```typescript
-// app-state.service.ts
-interface AppState {
-  user: User | null;
-  theme: 'light' | 'dark';
-  notifications: Notification[];
+import { BehaviorSubject } from 'rxjs';
+
+// 1. MUST have an initial value (unlike Subject)
+const counter$ = new BehaviorSubject<number>(0);  // starts at 0
+
+// 2. New subscribers get the CURRENT value immediately
+counter$.subscribe(value => console.log('A:', value));  // prints "A: 0"
+
+// 3. Update the value with .next()
+counter$.next(5);  // A: 5
+
+// 4. Late subscriber gets CURRENT value right away
+counter$.subscribe(value => console.log('B:', value));  // prints "B: 5" immediately!
+
+// 5. Access current value synchronously (without subscribing)
+console.log(counter$.value);  // prints 5
+```
+
+#### Why BehaviorSubject for State?
+
+| Feature | Why It Matters for State |
+|---------|-------------------------|
+| Has initial value | State always starts with something |
+| Remembers last value | New components get current state immediately |
+| `.value` property | Can read current state synchronously |
+| Multiple subscribers | Many components can listen to the same state |
+
+---
+
+### Service-Based Store Pattern
+
+The **Service-Based Store** is Angular's recommended pattern for state management. It combines:
+- A **Service** (singleton, injectable)
+- A **BehaviorSubject** (holds state, notifies subscribers)
+- **Methods** (actions to modify state)
+- **Observables** (selectors to read state)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                   SERVICE-BASED STORE                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│    ┌─────────────────────────────────────────────────────┐      │
+│    │                  StateService                        │      │
+│    │  ─────────────────────────────────────────────────── │      │
+│    │                                                      │      │
+│    │   private state$ = BehaviorSubject<State>           │      │
+│    │        │                                             │      │
+│    │        │ holds current state                         │      │
+│    │        ▼                                             │      │
+│    │   ┌─────────────────────────────┐                   │      │
+│    │   │  { user: {...},             │                   │      │
+│    │   │    items: [...],            │  ◄── Single       │      │
+│    │   │    loading: false }         │      Source of    │      │
+│    │   └─────────────────────────────┘      Truth        │      │
+│    │                                                      │      │
+│    │   SELECTORS (read)         ACTIONS (write)          │      │
+│    │   ─────────────────        ────────────────         │      │
+│    │   user$ = state$.pipe(     setUser(user) {          │      │
+│    │     map(s => s.user)         state$.next({...})     │      │
+│    │   )                        }                        │      │
+│    │                                                      │      │
+│    └─────────────────────────────────────────────────────┘      │
+│                          │                                       │
+│           ┌──────────────┼──────────────┐                       │
+│           ▼              ▼              ▼                       │
+│     HeaderComponent  CartComponent  ProfileComponent            │
+│     subscribes to    subscribes to  subscribes to               │
+│     user$            items$         user$                       │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Building a Service-Based Store (Step-by-Step)
+
+#### Step 1: Define Your State Interface
+
+```typescript
+// models/app-state.model.ts
+
+// What data does your app need to track?
+export interface User {
+  id: number;
+  name: string;
+  email: string;
 }
 
-const initialState: AppState = {
-  user: null,
-  theme: 'light',
-  notifications: []
-};
+export interface CartItem {
+  productId: number;
+  name: string;
+  price: number;
+  quantity: number;
+}
 
-@Injectable({ providedIn: 'root' })
+// The complete state of your app
+export interface AppState {
+  user: User | null;           // null = not logged in
+  cartItems: CartItem[];       // shopping cart
+  theme: 'light' | 'dark';     // user preference
+  isLoading: boolean;          // show spinner?
+}
+
+// Initial state when app starts
+export const initialState: AppState = {
+  user: null,
+  cartItems: [],
+  theme: 'light',
+  isLoading: false
+};
+```
+
+#### Step 2: Create the State Service
+
+```typescript
+// services/app-state.service.ts
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { AppState, initialState, User, CartItem } from '../models/app-state.model';
+
+@Injectable({
+  providedIn: 'root'  // Singleton - one instance shared everywhere
+})
 export class AppStateService {
+
+  // ═══════════════════════════════════════════════════════════
+  // THE STATE (private - only this service can modify it)
+  // ═══════════════════════════════════════════════════════════
   private state = new BehaviorSubject<AppState>(initialState);
 
-  // Expose state as observable
+  // ═══════════════════════════════════════════════════════════
+  // SELECTORS (public observables - components subscribe to these)
+  // ═══════════════════════════════════════════════════════════
+
+  // Full state (rarely needed)
   state$ = this.state.asObservable();
 
-  // Selectors
-  user$ = this.state$.pipe(map(state => state.user));
-  theme$ = this.state$.pipe(map(state => state.theme));
-  notifications$ = this.state$.pipe(map(state => state.notifications));
+  // Select specific pieces of state
+  user$ = this.state$.pipe(
+    map(state => state.user)
+  );
 
-  // Get current value
-  get currentState(): AppState {
-    return this.state.value;
+  isLoggedIn$ = this.state$.pipe(
+    map(state => state.user !== null)
+  );
+
+  cartItems$ = this.state$.pipe(
+    map(state => state.cartItems)
+  );
+
+  cartTotal$ = this.state$.pipe(
+    map(state => state.cartItems.reduce(
+      (sum, item) => sum + (item.price * item.quantity), 0
+    ))
+  );
+
+  cartCount$ = this.state$.pipe(
+    map(state => state.cartItems.reduce(
+      (sum, item) => sum + item.quantity, 0
+    ))
+  );
+
+  theme$ = this.state$.pipe(
+    map(state => state.theme)
+  );
+
+  isLoading$ = this.state$.pipe(
+    map(state => state.isLoading)
+  );
+
+  // ═══════════════════════════════════════════════════════════
+  // ACTIONS (public methods - how components update state)
+  // ═══════════════════════════════════════════════════════════
+
+  // User actions
+  login(user: User): void {
+    this.updateState({ user, isLoading: false });
   }
 
-  // Actions
-  setUser(user: User | null): void {
-    this.updateState({ user });
+  logout(): void {
+    this.updateState({ user: null, cartItems: [] });
   }
 
-  setTheme(theme: 'light' | 'dark'): void {
-    this.updateState({ theme });
+  // Cart actions
+  addToCart(item: CartItem): void {
+    const currentItems = this.state.value.cartItems;
+    const existingIndex = currentItems.findIndex(
+      i => i.productId === item.productId
+    );
+
+    let newItems: CartItem[];
+    if (existingIndex >= 0) {
+      // Item exists - update quantity
+      newItems = currentItems.map((i, index) =>
+        index === existingIndex
+          ? { ...i, quantity: i.quantity + item.quantity }
+          : i
+      );
+    } else {
+      // New item - add to cart
+      newItems = [...currentItems, item];
+    }
+
+    this.updateState({ cartItems: newItems });
   }
 
-  addNotification(notification: Notification): void {
-    const notifications = [...this.currentState.notifications, notification];
-    this.updateState({ notifications });
+  removeFromCart(productId: number): void {
+    const newItems = this.state.value.cartItems.filter(
+      item => item.productId !== productId
+    );
+    this.updateState({ cartItems: newItems });
   }
 
-  removeNotification(id: string): void {
-    const notifications = this.currentState.notifications.filter(n => n.id !== id);
-    this.updateState({ notifications });
+  clearCart(): void {
+    this.updateState({ cartItems: [] });
   }
 
-  private updateState(partial: Partial<AppState>): void {
-    this.state.next({ ...this.currentState, ...partial });
+  // Theme actions
+  toggleTheme(): void {
+    const newTheme = this.state.value.theme === 'light' ? 'dark' : 'light';
+    this.updateState({ theme: newTheme });
+  }
+
+  // Loading actions
+  setLoading(isLoading: boolean): void {
+    this.updateState({ isLoading });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // HELPER (private - updates state immutably)
+  // ═══════════════════════════════════════════════════════════
+  private updateState(partialState: Partial<AppState>): void {
+    const currentState = this.state.value;
+    const newState = { ...currentState, ...partialState };
+    this.state.next(newState);
   }
 }
 ```
 
-### Using State in Components
+#### Step 3: Use in Components
 
 ```typescript
+// components/header.component.ts
 @Component({
   selector: 'app-header',
   template: `
-    <header [class.dark]="(theme$ | async) === 'dark'">
-      <ng-container *ngIf="user$ | async as user; else loginLink">
-        <span>Welcome, {{ user.name }}</span>
+    <!-- Show user info or login link -->
+    <div class="user-section">
+      <ng-container *ngIf="isLoggedIn$ | async; else showLogin">
+        <span>Welcome, {{ (user$ | async)?.name }}</span>
         <button (click)="logout()">Logout</button>
       </ng-container>
-      <ng-template #loginLink>
+      <ng-template #showLogin>
         <a routerLink="/login">Login</a>
       </ng-template>
+    </div>
 
-      <button (click)="toggleTheme()">
-        {{ (theme$ | async) === 'dark' ? 'Light' : 'Dark' }} Mode
-      </button>
-    </header>
+    <!-- Cart icon with count -->
+    <div class="cart">
+      <a routerLink="/cart">
+        🛒 Cart ({{ cartCount$ | async }})
+      </a>
+    </div>
+
+    <!-- Theme toggle -->
+    <button (click)="toggleTheme()">
+      {{ (theme$ | async) === 'dark' ? '☀️ Light' : '🌙 Dark' }}
+    </button>
   `
 })
 export class HeaderComponent {
+  // Subscribe to state slices
   user$ = this.stateService.user$;
+  isLoggedIn$ = this.stateService.isLoggedIn$;
+  cartCount$ = this.stateService.cartCount$;
   theme$ = this.stateService.theme$;
 
   constructor(private stateService: AppStateService) {}
 
-  toggleTheme(): void {
-    const newTheme = this.stateService.currentState.theme === 'dark' ? 'light' : 'dark';
-    this.stateService.setTheme(newTheme);
+  logout(): void {
+    this.stateService.logout();
   }
 
-  logout(): void {
-    this.stateService.setUser(null);
+  toggleTheme(): void {
+    this.stateService.toggleTheme();
   }
 }
 ```
-
-### Entity State Pattern
 
 ```typescript
-// product-state.service.ts
-interface ProductState {
-  products: Product[];
-  selectedId: number | null;
-  loading: boolean;
-  error: string | null;
-}
+// components/product-card.component.ts
+@Component({
+  selector: 'app-product-card',
+  template: `
+    <div class="product">
+      <h3>{{ product.name }}</h3>
+      <p>{{ product.price | currency }}</p>
+      <button (click)="addToCart()">Add to Cart</button>
+    </div>
+  `
+})
+export class ProductCardComponent {
+  @Input() product!: { id: number; name: string; price: number };
 
-@Injectable({ providedIn: 'root' })
-export class ProductStateService {
-  private state = new BehaviorSubject<ProductState>({
-    products: [],
-    selectedId: null,
-    loading: false,
-    error: null
-  });
+  constructor(private stateService: AppStateService) {}
 
-  // Selectors
-  products$ = this.state.pipe(map(s => s.products));
-  loading$ = this.state.pipe(map(s => s.loading));
-  error$ = this.state.pipe(map(s => s.error));
-
-  selectedProduct$ = this.state.pipe(
-    map(s => s.products.find(p => p.id === s.selectedId) || null)
-  );
-
-  constructor(private http: HttpClient) {}
-
-  loadProducts(): void {
-    this.patchState({ loading: true, error: null });
-
-    this.http.get<Product[]>('/api/products').pipe(
-      tap(products => this.patchState({ products, loading: false })),
-      catchError(error => {
-        this.patchState({ loading: false, error: error.message });
-        return EMPTY;
-      })
-    ).subscribe();
-  }
-
-  selectProduct(id: number): void {
-    this.patchState({ selectedId: id });
-  }
-
-  addProduct(product: Product): void {
-    const products = [...this.state.value.products, product];
-    this.patchState({ products });
-  }
-
-  updateProduct(updated: Product): void {
-    const products = this.state.value.products.map(p =>
-      p.id === updated.id ? updated : p
-    );
-    this.patchState({ products });
-  }
-
-  deleteProduct(id: number): void {
-    const products = this.state.value.products.filter(p => p.id !== id);
-    this.patchState({ products });
-  }
-
-  private patchState(partial: Partial<ProductState>): void {
-    this.state.next({ ...this.state.value, ...partial });
+  addToCart(): void {
+    this.stateService.addToCart({
+      productId: this.product.id,
+      name: this.product.name,
+      price: this.product.price,
+      quantity: 1
+    });
   }
 }
 ```
+
+```typescript
+// components/cart.component.ts
+@Component({
+  selector: 'app-cart',
+  template: `
+    <h2>Shopping Cart</h2>
+
+    <div *ngIf="(cartItems$ | async)?.length === 0">
+      Your cart is empty
+    </div>
+
+    <div *ngFor="let item of cartItems$ | async" class="cart-item">
+      <span>{{ item.name }} x {{ item.quantity }}</span>
+      <span>{{ item.price * item.quantity | currency }}</span>
+      <button (click)="remove(item.productId)">Remove</button>
+    </div>
+
+    <div class="total">
+      <strong>Total: {{ cartTotal$ | async | currency }}</strong>
+    </div>
+
+    <button (click)="clearCart()">Clear Cart</button>
+  `
+})
+export class CartComponent {
+  cartItems$ = this.stateService.cartItems$;
+  cartTotal$ = this.stateService.cartTotal$;
+
+  constructor(private stateService: AppStateService) {}
+
+  remove(productId: number): void {
+    this.stateService.removeFromCart(productId);
+  }
+
+  clearCart(): void {
+    this.stateService.clearCart();
+  }
+}
+```
+
+### How Data Flows
+
+```
+USER ACTION → SERVICE METHOD → STATE UPDATE → COMPONENTS RE-RENDER
+────────────────────────────────────────────────────────────────────
+
+Example: User clicks "Add to Cart"
+
+1. User clicks button
+   │
+   ▼
+2. Component calls: stateService.addToCart(item)
+   │
+   ▼
+3. Service updates state:
+   state.next({ ...currentState, cartItems: [...items, newItem] })
+   │
+   ▼
+4. BehaviorSubject broadcasts new state to ALL subscribers
+   │
+   ├──► HeaderComponent (cartCount$ updates) → shows "Cart (3)"
+   │
+   └──► CartComponent (cartItems$ updates) → shows new item in list
+```
+
+### Best Practices Summary
+
+| Practice | Why |
+|----------|-----|
+| Keep state private | Only service should modify state |
+| Use selectors (observables) | Components subscribe, don't read directly |
+| Immutable updates | `{ ...state, property: newValue }` |
+| Small, focused actions | `addToCart()` not `updateState()` |
+| Use `async` pipe | Auto-subscribes and unsubscribes |
+| One service per domain | `CartStateService`, `UserStateService` |
 
 ---
 
