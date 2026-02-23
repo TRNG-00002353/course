@@ -1,248 +1,266 @@
 # DevOps Key Concepts
 
-## Overview
+## Quick Reference
 
-Quick reference for AWS CI/CD services and DevOps practices.
+Essential concepts for DevOps and CI/CD.
 
 ---
 
 ## 1. DevOps Fundamentals
 
-### CI/CD Pipeline
+### What is DevOps?
+
+DevOps = Development + Operations working together to deliver software faster and more reliably.
+
+### Core Principles
+
+| Principle | Description |
+|-----------|-------------|
+| **Automation** | Automate builds, tests, deployments |
+| **Collaboration** | Dev and Ops work as one team |
+| **Fast Feedback** | Know quickly if something breaks |
+| **Continuous Improvement** | Iterate and improve processes |
+
+### DevOps Lifecycle
+
+```
+Plan → Code → Build → Test → Deploy → Operate → Monitor → Plan...
+```
+
+---
+
+## 2. CI/CD Pipeline
+
+### Pipeline Stages
 
 ```
 ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
 │  Source  │───▶│  Build   │───▶│   Test   │───▶│  Deploy  │
 └──────────┘    └──────────┘    └──────────┘    └──────────┘
-   GitHub       CodeBuild       CodeBuild       CodeDeploy
+   Git Push      Compile         Run Tests       Release
 ```
 
-### Key Principles
+### CI vs CD
 
-| Principle | Description |
-|-----------|-------------|
-| **Automation** | Automate builds, tests, deployments |
-| **Fast Feedback** | Know quickly if something breaks |
-| **Version Control** | Everything in Git |
-| **Continuous Improvement** | Iterate and improve |
+| Term | Definition |
+|------|------------|
+| **CI (Continuous Integration)** | Automatically build and test on every commit |
+| **CD (Continuous Delivery)** | Code always ready to deploy (manual trigger) |
+| **CD (Continuous Deployment)** | Fully automated deployment to production |
 
 ---
 
-## 2. AWS CI/CD Services
+## 3. Jenkins
 
-| Service | Purpose | Key File |
-|---------|---------|----------|
-| **CodeCommit** | Git repository | - |
-| **CodeBuild** | Build & test | `buildspec.yml` |
-| **CodeDeploy** | Deploy to EC2 | `appspec.yml` |
-| **CodePipeline** | Orchestration | Pipeline config |
+### Jenkinsfile Structure
 
----
+```groovy
+pipeline {
+    agent any
 
-## 3. CodeBuild
+    stages {
+        stage('Build') {
+            steps {
+                sh 'mvn clean compile'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh './deploy.sh'
+            }
+        }
+    }
 
-### buildspec.yml Structure
-
-```yaml
-version: 0.2
-
-phases:
-  install:
-    runtime-versions:
-      java: corretto17
-
-  pre_build:
-    commands:
-      - mvn dependency:resolve
-
-  build:
-    commands:
-      - mvn test
-      - mvn package -DskipTests
-
-artifacts:
-  files:
-    - target/*.jar
-    - appspec.yml
-    - scripts/**/*
-
-cache:
-  paths:
-    - '/root/.m2/**/*'
+    post {
+        success { echo 'Build succeeded!' }
+        failure { echo 'Build failed!' }
+    }
+}
 ```
 
-### Build Phases
+### Key Concepts
 
-```
-INSTALL → PRE_BUILD → BUILD → POST_BUILD
-   │          │          │         │
- Setup     Prepare    Compile   Cleanup
- Java      deps       test
-```
-
-### Environment Variables
-
-```yaml
-env:
-  variables:
-    BUILD_ENV: "production"
-  parameter-store:
-    DB_PASSWORD: "/myapp/db/password"
-```
-
----
-
-## 4. CodeDeploy
-
-### appspec.yml Structure
-
-```yaml
-version: 0.0
-os: linux
-
-files:
-  - source: target/app.jar
-    destination: /opt/myapp/
-
-hooks:
-  ApplicationStop:
-    - location: scripts/stop.sh
-      timeout: 60
-
-  ApplicationStart:
-    - location: scripts/start.sh
-      timeout: 60
-
-  ValidateService:
-    - location: scripts/validate.sh
-      timeout: 120
-```
-
-### Deployment Lifecycle
-
-```
-ApplicationStop → BeforeInstall → Install → AfterInstall → ApplicationStart → ValidateService
-```
-
-### Deployment Scripts
-
-**stop.sh**
-```bash
-#!/bin/bash
-sudo systemctl stop myapp || true
-```
-
-**start.sh**
-```bash
-#!/bin/bash
-sudo systemctl start myapp
-```
-
-**validate.sh**
-```bash
-#!/bin/bash
-sleep 30
-curl -f http://localhost:8080/actuator/health || exit 1
-```
-
----
-
-## 5. CodePipeline
-
-### Pipeline Structure
-
-```
-Pipeline
-├── Source Stage (GitHub)
-├── Build Stage (CodeBuild)
-├── [Optional] Approval Stage
-└── Deploy Stage (CodeDeploy)
-```
+| Term | Description |
+|------|-------------|
+| **Pipeline** | Scripted workflow in Jenkinsfile |
+| **Stage** | Logical group of steps (Build, Test, Deploy) |
+| **Step** | Individual command or action |
+| **Agent** | Machine that runs the build |
+| **Artifact** | Output files from build |
 
 ### Common Commands
 
-```bash
-# Start pipeline
-aws codepipeline start-pipeline-execution --name my-pipeline
-
-# Check status
-aws codepipeline get-pipeline-state --name my-pipeline
-
-# View history
-aws codepipeline list-pipeline-executions --name my-pipeline
+```groovy
+sh 'command'              // Run shell command
+git 'repo-url'            // Clone repository
+archiveArtifacts '*.jar'  // Save build output
+junit 'reports/*.xml'     // Publish test results
 ```
 
 ---
 
-## Quick Reference
+## 4. SonarQube
 
-### Project Structure
+### What It Detects
+
+| Category | Description |
+|----------|-------------|
+| **Bugs** | Actual code errors |
+| **Vulnerabilities** | Security issues |
+| **Code Smells** | Maintainability problems |
+| **Coverage** | Percentage of code tested |
+
+### Quality Gate
+
+Pass/fail conditions for your code:
+```
+Coverage > 80%
+Bugs = 0
+Vulnerabilities = 0
+Code Smells < 10
+```
+
+### Integration with Jenkins
+
+```groovy
+stage('SonarQube Analysis') {
+    steps {
+        withSonarQubeEnv('sonarqube') {
+            sh 'mvn sonar:sonar'
+        }
+    }
+}
+
+stage('Quality Gate') {
+    steps {
+        waitForQualityGate abortPipeline: true
+    }
+}
+```
+
+---
+
+## 5. Deployment Strategies
+
+### Rolling Deployment
+Update instances one at a time.
+```
+[v1] [v1] [v1] → [v2] [v1] [v1] → [v2] [v2] [v1] → [v2] [v2] [v2]
+```
+
+### Blue-Green Deployment
+Run two environments, switch traffic.
+```
+Blue (v1) ← Traffic
+Green (v2) idle
+
+After switch:
+Blue (v1) idle
+Green (v2) ← Traffic
+```
+
+### Canary Deployment
+Route small % of traffic to new version first.
+```
+95% → v1 (stable)
+5%  → v2 (canary)
+```
+
+---
+
+## 6. Quick Commands
+
+### Docker (for Jenkins/SonarQube)
+
+```bash
+# Run Jenkins
+docker run -d -p 8080:8080 jenkins/jenkins:lts
+
+# Run SonarQube
+docker run -d -p 9000:9000 sonarqube:community
+```
+
+### Maven with SonarQube
+
+```bash
+# Run tests with coverage
+mvn clean test jacoco:report
+
+# Run SonarQube analysis
+mvn sonar:sonar -Dsonar.token=xxx
+```
+
+### Jenkins Pipeline
+
+```bash
+# Trigger build via CLI
+curl -X POST http://jenkins:8080/job/my-job/build
+```
+
+---
+
+## 7. Best Practices Checklist
+
+### CI/CD
+- [ ] Commit frequently (multiple times/day)
+- [ ] Run tests on every commit
+- [ ] Keep builds fast (< 10 minutes)
+- [ ] Fix broken builds immediately
+- [ ] Automate deployments
+
+### Code Quality
+- [ ] Maintain 80%+ test coverage
+- [ ] Zero bugs and vulnerabilities
+- [ ] Run SonarQube on every build
+- [ ] Use quality gates
+
+### Security
+- [ ] Never commit secrets
+- [ ] Use credential management
+- [ ] Scan for vulnerabilities
+- [ ] Use least privilege
+
+---
+
+## 8. Project Structure
 
 ```
-my-app/
+my-project/
 ├── src/
+│   ├── main/java/
+│   └── test/java/
 ├── pom.xml
-├── buildspec.yml      # CodeBuild
-├── appspec.yml        # CodeDeploy
-└── scripts/
-    ├── start.sh
-    ├── stop.sh
-    └── validate.sh
-```
-
-### Key Commands
-
-```bash
-# CodeBuild
-aws codebuild start-build --project-name my-build
-
-# CodeDeploy
-aws deploy create-deployment --application-name MyApp ...
-
-# CodePipeline
-aws codepipeline start-pipeline-execution --name my-pipeline
+├── Jenkinsfile              # CI/CD pipeline
+├── sonar-project.properties # SonarQube config
+├── Dockerfile               # Container build
+└── docker-compose.yml       # Local development
 ```
 
 ---
 
-## Checklist
+## 9. Key Metrics
 
-### Initial Setup
-- [ ] Create CodeBuild project
-- [ ] Create CodeDeploy application
-- [ ] Create CodeDeploy deployment group
-- [ ] Install CodeDeploy agent on EC2
-- [ ] Create CodePipeline
-- [ ] Connect GitHub
-
-### Per Project
-- [ ] Add buildspec.yml
-- [ ] Add appspec.yml
-- [ ] Create deployment scripts
-- [ ] Configure IAM roles
-- [ ] Test pipeline
+| Metric | Target |
+|--------|--------|
+| **Deployment Frequency** | Multiple times/day |
+| **Lead Time** | < 1 day |
+| **Change Failure Rate** | < 15% |
+| **Mean Time to Recovery** | < 1 hour |
+| **Test Coverage** | > 80% |
 
 ---
 
-## Troubleshooting
+## 10. Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| Build fails | Check CloudWatch logs for CodeBuild |
-| Deploy fails | Check CodeDeploy events in console |
-| Pipeline stuck | Check action details in CodePipeline |
-| Permission denied | Verify IAM roles |
-| Agent not running | Restart CodeDeploy agent on EC2 |
-
-### Useful Commands
-
-```bash
-# CodeDeploy agent status
-sudo systemctl status codedeploy-agent
-
-# CodeBuild logs
-# CloudWatch → /aws/codebuild/project-name
-
-# CodeDeploy logs on EC2
-tail -f /var/log/aws/codedeploy-agent/codedeploy-agent.log
-```
+| Build fails | Check console output, fix errors |
+| Tests failing | Run locally, check test reports |
+| SonarQube issues | Review quality gate conditions |
+| Pipeline stuck | Check agent availability |
+| Deploy fails | Check logs, verify permissions |

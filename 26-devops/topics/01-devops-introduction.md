@@ -2,385 +2,343 @@
 
 ## What is DevOps?
 
-DevOps combines software development (Dev) and IT operations (Ops) to shorten the development lifecycle while delivering features and updates frequently.
+DevOps is a **culture and set of practices** that brings together software development (Dev) and IT operations (Ops) to deliver software faster and more reliably.
 
-### Core Principles
+**Think of it like this**: In a restaurant, if chefs (developers) and waiters (operations) work in isolation, food gets cold and orders get mixed up. DevOps is like having them work as one team - chefs understand customer needs, waiters know what's cooking.
 
-```
-Traditional                     DevOps
-───────────                     ──────
-Dev and Ops separate    →       Unified teams
-Manual deployments      →       Automated pipelines
-Deploy monthly          →       Deploy daily/hourly
-Fix issues slowly       →       Fast feedback loops
-```
-
-**Key Principles:**
-- **Collaboration**: Dev and Ops work together
-- **Automation**: Automate builds, tests, deployments
-- **Continuous Improvement**: Iterate and improve processes
-- **Fast Feedback**: Quick detection and resolution of issues
-
----
-
-## CI/CD Pipeline
-
-CI/CD automates the process of building, testing, and deploying applications.
-
-### Pipeline Overview
+### The Old Way vs DevOps
 
 ```
-┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
-│  Source  │───▶│  Build   │───▶│   Test   │───▶│  Deploy  │
-│   Code   │    │          │    │          │    │          │
-└──────────┘    └──────────┘    └──────────┘    └──────────┘
-     │               │               │               │
-   GitHub       CodeBuild       Automated        CodeDeploy
-   Push          Compile         Tests           to EC2/S3
-```
+Traditional Approach:
+┌──────────────┐                    ┌──────────────┐
+│  Developers  │ ──── Wall ────▶   │  Operations  │
+│  Write code  │                    │  Deploy code │
+│  "It works   │                    │  "Why is it  │
+│   on my      │                    │   broken?"   │
+│   machine"   │                    │              │
+└──────────────┘                    └──────────────┘
 
-### Continuous Integration (CI)
-
-Developers frequently merge code into a shared repository with automated builds and tests.
-
-**Benefits:**
-- Early detection of bugs
-- Reduced integration problems
-- Faster development cycle
-
-### Continuous Delivery/Deployment (CD)
-
-Code is automatically deployed to staging/production after passing tests.
-
-**Continuous Delivery**: Deploy manually with one click
-**Continuous Deployment**: Fully automated deployment
-
----
-
-## AWS CI/CD Services
-
-AWS provides managed services for the entire CI/CD pipeline.
-
-### Service Overview
-
-| Service | Purpose | Comparison |
-|---------|---------|------------|
-| **CodeCommit** | Git repository hosting | Like GitHub |
-| **CodeBuild** | Build and test | Like Jenkins |
-| **CodeDeploy** | Deployment automation | Deploy to EC2, Lambda |
-| **CodePipeline** | Pipeline orchestration | Connects all services |
-
-### How They Work Together
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     AWS CodePipeline                         │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│   ┌──────────┐    ┌──────────┐    ┌──────────┐             │
-│   │CodeCommit│───▶│CodeBuild │───▶│CodeDeploy│             │
-│   │ (Source) │    │ (Build)  │    │ (Deploy) │             │
-│   └──────────┘    └──────────┘    └──────────┘             │
-│        │               │               │                    │
-│     Git push       Build JAR      Deploy to                │
-│     triggers       Run tests      EC2/S3                   │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
+DevOps Approach:
+┌─────────────────────────────────────────────────┐
+│           Development + Operations               │
+│                                                  │
+│   Write → Build → Test → Deploy → Monitor       │
+│                                                  │
+│   "We're all responsible for the product"       │
+└─────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Pipeline Stages Explained
+## Why DevOps Matters
 
-### 1. Source Stage
+### Problems DevOps Solves
 
-Code changes trigger the pipeline.
+| Problem | DevOps Solution |
+|---------|-----------------|
+| "Works on my machine" | Consistent environments (containers, IaC) |
+| Deployments are scary | Automated, frequent, small deployments |
+| Bugs found late | Continuous testing catches issues early |
+| Slow releases | Automation speeds up delivery |
+| Blame game | Shared responsibility |
 
-**Supported Sources:**
-- AWS CodeCommit
-- GitHub
-- Bitbucket
-- S3 bucket
+### Benefits
 
-```yaml
-# Example: GitHub webhook triggers pipeline
-Source:
-  Provider: GitHub
-  Repository: my-app
-  Branch: main
-```
-
-### 2. Build Stage
-
-Compile code, run tests, create artifacts.
-
-```yaml
-# buildspec.yml for CodeBuild
-version: 0.2
-phases:
-  install:
-    runtime-versions:
-      java: corretto17
-  build:
-    commands:
-      - mvn clean package
-artifacts:
-  files:
-    - target/*.jar
-```
-
-### 3. Test Stage
-
-Run automated tests to validate code.
-
-**Test Types:**
-- **Unit Tests**: Test individual methods
-- **Integration Tests**: Test component interactions
-- **Security Scans**: Check for vulnerabilities
-
-### 4. Deploy Stage
-
-Deploy artifacts to target environment.
-
-**Deployment Targets:**
-- EC2 instances
-- S3 buckets (static websites)
-- Elastic Beanstalk
-- ECS/EKS containers
-- Lambda functions
+- **Faster Delivery**: Release features in days, not months
+- **Higher Quality**: Automated testing catches bugs early
+- **Better Reliability**: Consistent deployments, quick recovery
+- **Improved Collaboration**: Teams work together
+- **Quick Feedback**: Know immediately if something breaks
 
 ---
 
-## Simple Pipeline Example
+## Core DevOps Principles
 
-### Spring Boot App Pipeline
+### 1. Automation
+
+Automate everything that can be automated:
+- Building code
+- Running tests
+- Deploying applications
+- Infrastructure provisioning
 
 ```
-Developer pushes code to GitHub
-        │
-        ▼
-┌─────────────────┐
-│ CodePipeline    │
-│ detects change  │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ CodeBuild       │
-│ - mvn test      │
-│ - mvn package   │
-│ - Create JAR    │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ CodeDeploy      │
-│ - Stop old app  │
-│ - Deploy JAR    │
-│ - Start new app │
-└─────────────────┘
+Manual Process:                 Automated:
+┌───────────────────┐          ┌───────────────────┐
+│ Developer builds  │          │ Push code         │
+│ locally           │          │      ↓            │
+│      ↓            │          │ Auto build        │
+│ Copies files to   │          │      ↓            │
+│ server            │          │ Auto test         │
+│      ↓            │          │      ↓            │
+│ Runs tests        │          │ Auto deploy       │
+│ manually          │          │                   │
+│      ↓            │          │ Done in minutes!  │
+│ Hours later...    │          └───────────────────┘
+└───────────────────┘
 ```
 
-### buildspec.yml (CodeBuild)
+### 2. Continuous Improvement
 
-```yaml
-version: 0.2
+- Measure everything
+- Learn from failures
+- Iterate and improve
+- Blameless post-mortems
 
-phases:
-  install:
-    runtime-versions:
-      java: corretto17
+### 3. Collaboration
 
-  pre_build:
-    commands:
-      - echo "Running tests..."
-      - mvn test
+- Shared goals between teams
+- Open communication
+- Cross-functional teams
+- Shared responsibility
 
-  build:
-    commands:
-      - echo "Building application..."
-      - mvn clean package -DskipTests
+### 4. Fast Feedback
 
-artifacts:
-  files:
-    - target/*.jar
-    - scripts/*
-  discard-paths: no
-```
-
-### appspec.yml (CodeDeploy)
-
-```yaml
-version: 0.0
-os: linux
-
-files:
-  - source: target/app.jar
-    destination: /opt/myapp/
-
-hooks:
-  ApplicationStop:
-    - location: scripts/stop.sh
-      timeout: 60
-
-  ApplicationStart:
-    - location: scripts/start.sh
-      timeout: 60
-```
+- Know immediately if build fails
+- Test results in minutes
+- Monitor production in real-time
+- Quick rollback capability
 
 ---
 
-## DevOps Best Practices
+## The DevOps Lifecycle
 
-### 1. Version Control Everything
-
-```
-Repository should contain:
-├── src/                    # Application code
-├── buildspec.yml           # Build configuration
-├── appspec.yml            # Deployment configuration
-├── scripts/               # Deployment scripts
-│   ├── start.sh
-│   └── stop.sh
-└── tests/                 # Automated tests
-```
-
-### 2. Automate Everything
-
-| Manual Process | Automated Alternative |
-|----------------|----------------------|
-| Build locally | CodeBuild |
-| Copy files to server | CodeDeploy |
-| Run tests manually | Pipeline test stage |
-| Deploy on Friday evening | Continuous deployment |
-
-### 3. Fail Fast
-
-Run quick checks first, expensive ones later:
+DevOps is often represented as an infinite loop:
 
 ```
-1. Lint/syntax check (seconds)
-2. Unit tests (minutes)
-3. Build artifact (minutes)
-4. Integration tests (longer)
-5. Deploy to staging
-6. Deploy to production
-```
-
-### 4. Keep Pipelines Fast
-
-Target: Complete pipeline in under 10 minutes.
-
-**Tips:**
-- Cache dependencies
-- Run tests in parallel
-- Use appropriate instance sizes
-- Skip unnecessary steps
-
-### 5. Secure Your Pipeline
-
-- Never hardcode credentials
-- Use IAM roles for services
-- Encrypt artifacts
-- Scan for vulnerabilities
-
----
-
-## Environment Strategy
-
-### Multiple Environments
-
-```
-┌──────────────┐    ┌──────────────┐    ┌──────────────┐
-│ Development  │───▶│   Staging    │───▶│  Production  │
+        ┌─────────────────────────────────────────┐
+        │                                          │
+        ▼                                          │
+┌──────────────┐    ┌──────────────┐    ┌─────────┴────┐
+│    PLAN      │───▶│    CODE      │───▶│    BUILD     │
 │              │    │              │    │              │
-│ - Latest code│    │ - Test env   │    │ - Live users │
-│ - Unstable   │    │ - QA testing │    │ - Stable     │
-└──────────────┘    └──────────────┘    └──────────────┘
+│ Requirements │    │ Development  │    │ Compile      │
+│ User stories │    │ Version ctrl │    │ Package      │
+└──────────────┘    └──────────────┘    └──────┬───────┘
+                                               │
+┌──────────────┐    ┌──────────────┐    ┌──────▼───────┐
+│   MONITOR    │◀───│   OPERATE    │◀───│    TEST      │
+│              │    │              │    │              │
+│ Logs, metrics│    │ Run in prod  │    │ Unit tests   │
+│ Alerts       │    │ Maintain     │    │ Integration  │
+└──────┬───────┘    └──────────────┘    └──────┬───────┘
+       │                                       │
+       │            ┌──────────────┐           │
+       │            │   DEPLOY     │           │
+       └───────────▶│              │◀──────────┘
+                    │ Release to   │
+                    │ production   │
+                    └──────────────┘
 ```
 
-### Branch Strategy
+### Phases Explained
 
-```
-main (production)
-  │
-  └── develop (staging)
-        │
-        ├── feature/user-auth
-        │
-        └── feature/payment
-```
-
-**Pipeline triggers:**
-- `feature/*` → Build and test only
-- `develop` → Deploy to staging
-- `main` → Deploy to production
+| Phase | What Happens | Tools |
+|-------|--------------|-------|
+| **Plan** | Define features, user stories | Jira, Trello |
+| **Code** | Write and review code | Git, GitHub, VS Code |
+| **Build** | Compile, package | Maven, npm, Gradle |
+| **Test** | Run automated tests | JUnit, Jest, Selenium |
+| **Deploy** | Release to environment | Jenkins, Docker |
+| **Operate** | Run in production | Kubernetes, servers |
+| **Monitor** | Track health and metrics | Prometheus, Grafana |
 
 ---
 
-## Monitoring and Feedback
+## Key DevOps Practices
 
-### Pipeline Monitoring
+### 1. Version Control
 
-```
-CloudWatch Metrics:
-├── Build success/failure rate
-├── Build duration
-├── Deploy success rate
-└── Pipeline execution time
-```
-
-### Notifications
-
-```yaml
-# SNS notification on failure
-Pipeline:
-  Notifications:
-    - Event: FAILED
-      Target: sns-topic-arn
-      Message: "Pipeline failed!"
-```
-
-### Rollback Strategy
-
-Always have a way to roll back:
+Everything in Git - code, configuration, scripts:
 
 ```bash
-# Manual rollback with CodeDeploy
-aws deploy create-deployment \
-  --application-name MyApp \
-  --deployment-group-name Production \
-  --revision revisionType=S3,... \
-  --description "Rollback to previous version"
+# All code changes are tracked
+git add .
+git commit -m "Add user authentication"
+git push origin feature/auth
 ```
+
+### 2. Infrastructure as Code (IaC)
+
+Define infrastructure in code files:
+
+```yaml
+# Instead of clicking in UI, define in code
+server:
+  type: linux
+  memory: 4GB
+  disk: 50GB
+  software:
+    - java
+    - nginx
+```
+
+### 3. Continuous Integration (CI)
+
+Automatically build and test on every commit:
+
+```
+Developer pushes code
+        ↓
+CI server detects change
+        ↓
+Builds the application
+        ↓
+Runs all tests
+        ↓
+Reports success/failure
+```
+
+### 4. Continuous Delivery/Deployment (CD)
+
+Automatically deploy after tests pass:
+
+- **Continuous Delivery**: Ready to deploy with one click
+- **Continuous Deployment**: Fully automatic deployment
+
+### 5. Monitoring & Logging
+
+Track application health:
+
+```
+Application → Logs → Log aggregator → Dashboard
+                                          ↓
+                                     Alerts team
+                                     if problems
+```
+
+---
+
+## DevOps Tools Landscape
+
+### By Category
+
+```
+┌────────────────────────────────────────────────────────────┐
+│                     DevOps Tools                            │
+├────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Source Control:     Git, GitHub, GitLab, Bitbucket        │
+│                                                             │
+│  CI/CD:              Jenkins, GitHub Actions, GitLab CI    │
+│                                                             │
+│  Build:              Maven, Gradle, npm, webpack           │
+│                                                             │
+│  Testing:            JUnit, Jest, Selenium, SonarQube      │
+│                                                             │
+│  Containers:         Docker, Podman                        │
+│                                                             │
+│  Orchestration:      Kubernetes, Docker Swarm              │
+│                                                             │
+│  Configuration:      Ansible, Terraform, Chef              │
+│                                                             │
+│  Monitoring:         Prometheus, Grafana, ELK Stack        │
+│                                                             │
+└────────────────────────────────────────────────────────────┘
+```
+
+### Common Tool Combinations
+
+| Stack | Tools |
+|-------|-------|
+| **Java Stack** | Git, Maven, Jenkins, JUnit, SonarQube, Docker |
+| **JavaScript Stack** | Git, npm, GitHub Actions, Jest, Docker |
+| **Cloud-Native** | Git, Docker, Kubernetes, Terraform, Prometheus |
+
+---
+
+## DevOps Metrics
+
+### Key Metrics to Track
+
+| Metric | What It Measures | Good Target |
+|--------|------------------|-------------|
+| **Deployment Frequency** | How often you deploy | Multiple times/day |
+| **Lead Time** | Idea to production | Less than 1 day |
+| **Change Failure Rate** | % of deployments causing issues | Less than 15% |
+| **Mean Time to Recovery** | Time to fix production issues | Less than 1 hour |
+
+### The Goal
+
+```
+Traditional:                    DevOps Goal:
+- Deploy monthly               - Deploy daily/hourly
+- Lead time: weeks             - Lead time: hours
+- Recovery: hours/days         - Recovery: minutes
+- 20% failure rate             - <5% failure rate
+```
+
+---
+
+## Getting Started with DevOps
+
+### First Steps
+
+1. **Version Control Everything**
+   - Put all code in Git
+   - Include configuration files
+   - Include deployment scripts
+
+2. **Automate the Build**
+   - Create build scripts (Maven, npm)
+   - Remove manual steps
+
+3. **Add Automated Tests**
+   - Start with unit tests
+   - Add integration tests
+   - Run tests on every commit
+
+4. **Set Up CI/CD**
+   - Use Jenkins, GitHub Actions, or similar
+   - Automate build and test
+   - Eventually automate deployment
+
+5. **Monitor Everything**
+   - Add logging
+   - Track metrics
+   - Set up alerts
+
+---
+
+## DevOps Culture
+
+### Mindset Shift
+
+| From | To |
+|------|-----|
+| "That's not my job" | "We're all responsible" |
+| "It works on my machine" | "Let's fix it together" |
+| "We've always done it this way" | "Let's try and learn" |
+| "Who broke it?" | "How do we prevent this?" |
+
+### Blameless Culture
+
+When something goes wrong:
+- Focus on **what** happened, not **who** did it
+- Ask "How do we prevent this?" not "Who's fault is this?"
+- Learn from failures
+- Share knowledge
 
 ---
 
 ## Summary
 
-| Concept | Description |
-|---------|-------------|
-| **DevOps** | Culture of Dev + Ops collaboration |
-| **CI** | Continuous Integration - automated build/test |
-| **CD** | Continuous Delivery/Deployment |
-| **Pipeline** | Automated workflow: Source → Build → Test → Deploy |
+| Concept | Key Points |
+|---------|------------|
+| **DevOps** | Culture + practices combining Dev and Ops |
+| **Goal** | Deliver software faster and more reliably |
+| **Automation** | Automate build, test, deploy |
+| **CI/CD** | Continuous Integration and Delivery |
+| **Culture** | Collaboration, shared responsibility, learning |
 
-### AWS CI/CD Stack
+### Key Takeaways
 
-| Service | Role |
-|---------|------|
-| CodeCommit | Source code repository |
-| CodeBuild | Build and test |
-| CodeDeploy | Deploy to servers |
-| CodePipeline | Orchestrate the pipeline |
-
-### Key Files
-
-| File | Purpose |
-|------|---------|
-| `buildspec.yml` | CodeBuild instructions |
-| `appspec.yml` | CodeDeploy instructions |
+1. DevOps is about **culture** as much as tools
+2. **Automate** repetitive tasks
+3. **Fail fast** - catch issues early
+4. **Continuous improvement** - always get better
+5. **Shared responsibility** - everyone owns quality
 
 ## Next Topic
 
-Continue to [AWS CI/CD Tools](./02-aws-cicd-tools.md) to learn about AWS DevOps services in detail.
+Continue to [CI/CD Fundamentals](./02-cicd-fundamentals.md) to understand continuous integration and delivery in depth.
