@@ -1,100 +1,87 @@
 # Docker Containers
 
-## What is a Docker Container?
+## What is a Container?
 
-A Docker container is a lightweight, standalone, executable package that includes everything needed to run an application: code, runtime, system tools, libraries, and settings. Containers are running instances of Docker images.
+A container is a **running instance** of a Docker image. While an image is like a blueprint, a container is the actual running application.
 
-### Key Characteristics
+**Think of it like this**:
+- **Image** = Recipe for a cake
+- **Container** = The actual cake you baked from that recipe
 
-- **Isolated**: Own filesystem, network, and process space
-- **Ephemeral**: Designed to be temporary and disposable
-- **Portable**: Run consistently across different environments
-- **Lightweight**: Share host OS kernel, minimal overhead
-- **Fast**: Start in seconds or milliseconds
-- **Immutable**: Built from immutable images
+You can create multiple containers from the same image, and each container runs independently.
 
-### Container Lifecycle
+---
+
+## Container Lifecycle
+
+Containers go through different states:
 
 ```
-┌──────────┐
-│  Created │ ← docker create
-└────┬─────┘
-     │ docker start
-┌────▼─────┐
-│  Running │ ← docker run (create + start)
-└────┬─────┘
-     │ docker stop / docker kill
-┌────▼─────┐
-│  Stopped │
-└────┬─────┘
-     │ docker start (restart)
-     │ docker rm (remove)
-┌────▼─────┐
-│  Removed │
-└──────────┘
+┌──────────┐  docker run   ┌──────────┐
+│ Created  │ ────────────→ │ Running  │
+└──────────┘               └────┬─────┘
+                                │
+                         docker stop
+                                │
+                           ┌────▼─────┐
+                           │ Stopped  │
+                           └────┬─────┘
+                                │
+                          docker rm
+                                │
+                           ┌────▼─────┐
+                           │ Removed  │
+                           └──────────┘
 ```
 
 ---
 
-## Creating Containers
+## Running Containers
 
-### Basic Container Creation
+### Basic Run Command
 
 ```bash
-# Run a container (create and start)
+# Run a container (downloads image if needed)
 docker run nginx
 
-# Run container in detached mode (background)
+# Run in background (detached mode) - most common
 docker run -d nginx
 
-# Run with name
-docker run --name web-server nginx
-
-# Run with port mapping
-docker run -p 8080:80 nginx
-
-# Run with environment variables
-docker run -e NODE_ENV=production -e PORT=3000 node-app
-
-# Run with volume mount
-docker run -v /host/path:/container/path nginx
-
-# Create but don't start
-docker create --name my-app nginx
+# Run with a name (easier to manage)
+docker run -d --name my-web-server nginx
 ```
 
-### Interactive Containers
+### Common Run Options
+
+| Option | Purpose | Example |
+|--------|---------|---------|
+| `-d` | Run in background | `docker run -d nginx` |
+| `--name` | Give container a name | `docker run --name web nginx` |
+| `-p` | Map ports | `docker run -p 8080:80 nginx` |
+| `-e` | Set environment variable | `docker run -e NODE_ENV=prod app` |
+| `-v` | Mount a volume | `docker run -v data:/app/data app` |
+| `--rm` | Remove when stopped | `docker run --rm nginx` |
+
+### Port Mapping
+
+To access an application inside a container from your computer, you need to map ports:
 
 ```bash
-# Run with interactive terminal
-docker run -it ubuntu bash
-
-# Run command in existing container
-docker exec -it container_name bash
-
-# Run as specific user
-docker run -it --user 1001 ubuntu bash
-
-# Run with pseudo-TTY
-docker run -t ubuntu date
+# Map host port 8080 to container port 80
+docker run -d -p 8080:80 nginx
 ```
 
-### Container Run Options
-
-```bash
-# Complete example with common options
-docker run \
-  --name my-app \              # Container name
-  -d \                         # Detached mode
-  -p 8080:80 \                # Port mapping (host:container)
-  -e ENV=production \          # Environment variable
-  -v $(pwd)/data:/app/data \  # Volume mount
-  --restart unless-stopped \   # Restart policy
-  --memory="512m" \           # Memory limit
-  --cpus="1.5" \              # CPU limit
-  --network my-network \       # Custom network
-  nginx:latest                 # Image to use
 ```
+Your Computer                Container
+┌──────────────┐            ┌──────────────┐
+│              │            │              │
+│  localhost   │ ──────────→│   nginx      │
+│    :8080     │   mapped   │   :80        │
+│              │            │              │
+└──────────────┘            └──────────────┘
+```
+
+Now visit `http://localhost:8080` to see the nginx welcome page.
 
 ---
 
@@ -103,343 +90,244 @@ docker run \
 ### Listing Containers
 
 ```bash
-# List running containers
+# Show running containers
 docker ps
 
-# Output:
-CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS                  NAMES
-a1b2c3d4e5f6   nginx     "/docker-entrypoint.…"   2 minutes ago   Up 2 minutes   0.0.0.0:8080->80/tcp   web-server
-
-# List all containers (including stopped)
+# Show ALL containers (including stopped)
 docker ps -a
-
-# List with specific format
-docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Status}}"
-
-# List last N containers
-docker ps -n 5
-
-# List only container IDs
-docker ps -q
-
-# Filter containers
-docker ps --filter "name=web"
-docker ps --filter "status=running"
-docker ps --filter "ancestor=nginx"
 ```
 
-### Starting and Stopping Containers
+Output:
+```
+CONTAINER ID   IMAGE   COMMAND   CREATED   STATUS    PORTS                  NAMES
+a1b2c3d4e5f6   nginx   ...       1 min     Up 1 min  0.0.0.0:8080->80/tcp   web
+```
+
+### Starting and Stopping
 
 ```bash
-# Start stopped container
-docker start container_name
+# Stop a running container
+docker stop my-web-server
 
-# Start and attach to container
-docker start -a container_name
+# Start a stopped container
+docker start my-web-server
 
-# Start multiple containers
-docker start container1 container2
-
-# Stop running container (graceful, sends SIGTERM)
-docker stop container_name
-
-# Stop with timeout (default 10 seconds)
-docker stop -t 30 container_name
-
-# Kill container immediately (sends SIGKILL)
-docker kill container_name
-
-# Restart container
-docker restart container_name
-
-# Pause container (freeze processes)
-docker pause container_name
-
-# Unpause container
-docker unpause container_name
+# Restart a container
+docker restart my-web-server
 ```
 
 ### Removing Containers
 
 ```bash
-# Remove stopped container
-docker rm container_name
+# Remove a stopped container
+docker rm my-web-server
 
-# Force remove running container
-docker rm -f container_name
-
-# Remove multiple containers
-docker rm container1 container2 container3
+# Force remove a running container
+docker rm -f my-web-server
 
 # Remove all stopped containers
 docker container prune
-
-# Remove container after it exits
-docker run --rm nginx
-
-# Remove all containers (careful!)
-docker rm -f $(docker ps -aq)
 ```
 
 ---
 
-## Container Information and Inspection
+## Viewing Container Information
 
-### Viewing Container Details
+### Container Logs
 
 ```bash
-# Detailed container information
-docker inspect container_name
+# View logs
+docker logs my-web-server
 
-# Get specific information (JSON path)
-docker inspect --format='{{.State.Status}}' container_name
-docker inspect --format='{{.NetworkSettings.IPAddress}}' container_name
-docker inspect --format='{{json .Config}}' container_name | jq
+# Follow logs in real-time (like tail -f)
+docker logs -f my-web-server
 
-# View container logs
-docker logs container_name
-
-# Follow logs in real-time
-docker logs -f container_name
-
-# Show timestamps
-docker logs -t container_name
-
-# Show last N lines
-docker logs --tail 100 container_name
-
-# Show logs since timestamp
-docker logs --since 2024-01-01T00:00:00 container_name
-docker logs --since 1h container_name
-
-# View container processes
-docker top container_name
-
-# View resource usage statistics
-docker stats container_name
-
-# View stats for all containers
-docker stats
-
-# View container changes (filesystem)
-docker diff container_name
+# Show last 50 lines
+docker logs --tail 50 my-web-server
 ```
 
-### Monitoring Containers
+### Container Details
 
 ```bash
-# Real-time stats
-docker stats
+# Detailed information about a container
+docker inspect my-web-server
 
-# Output:
-CONTAINER ID   NAME          CPU %     MEM USAGE / LIMIT   MEM %     NET I/O       BLOCK I/O
-a1b2c3d4e5f6   web-server    0.01%     10MiB / 512MiB      1.95%     1.2kB / 0B    0B / 0B
-
-# Stats for specific containers
-docker stats web-server db-server
-
-# Single snapshot (no streaming)
-docker stats --no-stream
-
-# Events monitoring
-docker events
-
-# Filter events
-docker events --filter 'event=start'
-docker events --filter 'container=web-server'
+# Check resource usage
+docker stats my-web-server
 ```
 
 ---
 
-## Interacting with Running Containers
+## Executing Commands in Containers
 
-### Executing Commands
+### Running Commands
 
 ```bash
-# Execute command in running container
-docker exec container_name ls -la
+# Run a command in a running container
+docker exec my-web-server ls -la
 
-# Execute interactive command
-docker exec -it container_name bash
+# Open an interactive shell
+docker exec -it my-web-server bash
 
-# Execute as specific user
-docker exec -it --user root container_name bash
-
-# Execute with environment variable
-docker exec -e VAR=value container_name env
-
-# Execute with working directory
-docker exec -w /app container_name pwd
+# Or use sh for Alpine-based images
+docker exec -it my-web-server sh
 ```
+
+**Tip**: The `-it` flags give you an interactive terminal.
 
 ### Copying Files
 
 ```bash
 # Copy from container to host
-docker cp container_name:/path/in/container /host/path
+docker cp my-web-server:/etc/nginx/nginx.conf ./nginx.conf
 
 # Copy from host to container
-docker cp /host/path container_name:/path/in/container
-
-# Copy directory
-docker cp container_name:/app/logs ./logs
-
-# Examples
-docker cp web-server:/var/log/nginx/access.log ./access.log
-docker cp config.json web-server:/app/config.json
-```
-
-### Attaching to Containers
-
-```bash
-# Attach to running container
-docker attach container_name
-
-# Attach with no stdin
-docker attach --no-stdin container_name
-
-# Detach from container: Ctrl+P, Ctrl+Q
+docker cp ./config.json my-web-server:/app/config.json
 ```
 
 ---
 
-## Container Networking
+## Docker Volumes - Persistent Data
 
-### Port Mapping
+### The Problem: Data Loss
+
+By default, when a container is **deleted**, all data inside it is **lost forever**.
 
 ```bash
-# Map single port
-docker run -p 8080:80 nginx
+# Create a container and add some data
+docker run -d --name my-db postgres
+# ... container stores data ...
 
-# Map to specific host interface
-docker run -p 127.0.0.1:8080:80 nginx
-
-# Map multiple ports
-docker run -p 8080:80 -p 8443:443 nginx
-
-# Map all exposed ports to random host ports
-docker run -P nginx
-
-# View port mappings
-docker port container_name
+# Remove the container
+docker rm -f my-db
+# ALL DATA IS GONE! 😱
 ```
 
-### Network Management
+**This is a problem for**:
+- Databases (you'd lose all your data!)
+- User uploads
+- Log files
+- Any data that needs to survive restarts
 
-```bash
-# List networks
-docker network ls
+### The Solution: Volumes
 
-# Create network
-docker network create my-network
+A **volume** is storage that exists **outside the container**. Data in volumes survives even when containers are deleted.
 
-# Create network with subnet
-docker network create --subnet=172.18.0.0/16 my-network
+**Think of it like this**: A container is like a disposable cup. A volume is like a reusable water bottle - you can attach it to different cups, and the contents survive even when the cup is thrown away.
 
-# Run container on specific network
-docker run --network my-network nginx
-
-# Connect container to network
-docker network connect my-network container_name
-
-# Disconnect from network
-docker network disconnect my-network container_name
-
-# Inspect network
-docker network inspect my-network
-
-# Remove network
-docker network rm my-network
+```
+WITHOUT Volume:                 WITH Volume:
+┌─────────────┐                ┌─────────────┐
+│  Container  │                │  Container  │
+│  ┌───────┐  │                │      │      │
+│  │ Data  │  │                │      │      │
+│  └───────┘  │                │      ▼      │
+└─────────────┘                └──────┼──────┘
+       │                              │
+  Container dies                      │
+       │                       ┌──────▼──────┐
+       ▼                       │   Volume    │
+   Data LOST!                  │   (Data     │
+                               │   survives) │
+                               └─────────────┘
 ```
 
-### Network Communication
+### Types of Volumes
+
+| Type | What It Is | When to Use |
+|------|------------|-------------|
+| **Named Volume** | Docker-managed storage | Databases, production data |
+| **Bind Mount** | Maps a host folder | Development (edit files on host) |
+| **tmpfs** | Temporary memory storage | Sensitive data that shouldn't persist |
+
+### Using Named Volumes
+
+Named volumes are managed by Docker and are the **recommended** way to persist data.
 
 ```bash
-# Containers on same network can communicate by name
-docker network create app-network
-
-docker run -d --name database \
-  --network app-network \
-  postgres
-
-docker run -d --name api \
-  --network app-network \
-  -e DB_HOST=database \
-  my-api
-
-# api can reach database at hostname "database"
-```
-
----
-
-## Container Storage
-
-### Volume Mounts
-
-```bash
-# Create named volume
+# Create a volume
 docker volume create my-data
 
-# Use named volume
-docker run -v my-data:/app/data nginx
+# Run container with volume
+docker run -d \
+  --name my-db \
+  -v my-data:/var/lib/postgresql/data \
+  postgres
 
-# List volumes
+# The data persists even if container is removed!
+docker rm -f my-db
+# Volume "my-data" still exists with all your data
+
+# Start a new container with the same volume
+docker run -d \
+  --name my-db-new \
+  -v my-data:/var/lib/postgresql/data \
+  postgres
+# All your data is still there! 🎉
+```
+
+### Volume Commands
+
+```bash
+# List all volumes
 docker volume ls
 
-# Inspect volume
+# Inspect a volume
 docker volume inspect my-data
 
-# Remove volume
+# Remove a volume (be careful!)
 docker volume rm my-data
 
 # Remove all unused volumes
 docker volume prune
 ```
 
-### Bind Mounts
+### Using Bind Mounts
+
+Bind mounts link a folder on your computer directly to the container. Great for development!
 
 ```bash
-# Mount host directory (absolute path)
-docker run -v /host/path:/container/path nginx
-
-# Mount current directory
-docker run -v $(pwd):/app node
-
-# Read-only mount
-docker run -v $(pwd):/app:ro nginx
-
-# Mount specific file
-docker run -v $(pwd)/config.json:/app/config.json nginx
-```
-
-### tmpfs Mounts (Temporary)
-
-```bash
-# Mount tmpfs (stored in memory)
-docker run --tmpfs /app/cache nginx
-
-# With options
-docker run --tmpfs /app/cache:rw,size=64m nginx
-```
-
-### Volume Examples
-
-```bash
-# Database with persistent volume
+# Mount current directory to /app in container
 docker run -d \
-  --name postgres \
-  -v pgdata:/var/lib/postgresql/data \
-  -e POSTGRES_PASSWORD=secret \
-  postgres
-
-# Development with code sync
-docker run -d \
-  --name dev-server \
   -v $(pwd):/app \
   -p 3000:3000 \
   node:18
 
-# Configuration file mount
+# Changes you make to files are instantly visible in the container
+```
+
+```
+Your Computer                 Container
+┌─────────────────┐          ┌─────────────────┐
+│ /home/user/app  │ ←──────→ │ /app            │
+│ ├── index.js    │  linked  │ ├── index.js    │
+│ └── package.json│          │ └── package.json│
+└─────────────────┘          └─────────────────┘
+```
+
+### Practical Examples
+
+**Database with Persistent Data**:
+```bash
+docker run -d \
+  --name postgres \
+  -e POSTGRES_PASSWORD=secret \
+  -v pgdata:/var/lib/postgresql/data \
+  -p 5432:5432 \
+  postgres:15
+```
+
+**Development with Live Code Reloading**:
+```bash
+docker run -d \
+  --name dev-server \
+  -v $(pwd):/app \
+  -p 3000:3000 \
+  node:18 npm run dev
+```
+
+**Read-Only Configuration Mount**:
+```bash
 docker run -d \
   --name nginx \
   -v $(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro \
@@ -449,339 +337,110 @@ docker run -d \
 
 ---
 
-## Container Lifecycle Management
+## Environment Variables
 
-### Restart Policies
-
-```bash
-# No restart (default)
-docker run --restart no nginx
-
-# Always restart
-docker run --restart always nginx
-
-# Restart on failure
-docker run --restart on-failure nginx
-
-# Restart on failure with max attempts
-docker run --restart on-failure:5 nginx
-
-# Restart unless stopped manually
-docker run --restart unless-stopped nginx
-
-# Update restart policy
-docker update --restart unless-stopped container_name
-```
-
-### Health Checks
+Pass configuration to containers using environment variables:
 
 ```bash
-# View health status
-docker inspect --format='{{.State.Health.Status}}' container_name
+# Single variable
+docker run -e NODE_ENV=production my-app
 
-# Run container with health check
-docker run -d \
-  --name web \
-  --health-cmd="curl -f http://localhost/ || exit 1" \
-  --health-interval=30s \
-  --health-timeout=3s \
-  --health-retries=3 \
-  nginx
-
-# Health status in ps
-docker ps
-# STATUS column shows: Up 2 minutes (healthy)
-```
-
----
-
-## Resource Management
-
-### Memory Limits
-
-```bash
-# Limit memory
-docker run --memory="512m" nginx
-
-# Memory with swap limit
-docker run --memory="512m" --memory-swap="1g" nginx
-
-# Memory reservation (soft limit)
-docker run --memory-reservation="256m" nginx
-
-# Out of memory behavior
-docker run --oom-kill-disable nginx
-```
-
-### CPU Limits
-
-```bash
-# Limit CPU shares (relative weight)
-docker run --cpu-shares=512 nginx
-
-# Limit CPU cores
-docker run --cpus="1.5" nginx
-
-# Pin to specific CPUs
-docker run --cpuset-cpus="0,1" nginx
-
-# CPU quota
-docker run --cpu-quota=50000 nginx
-```
-
-### Combined Resource Limits
-
-```bash
-docker run -d \
-  --name resource-limited \
-  --memory="512m" \
-  --memory-swap="1g" \
-  --cpus="1.5" \
-  --pids-limit=100 \
-  nginx
-```
-
-### Updating Container Resources
-
-```bash
-# Update memory limit
-docker update --memory="1g" container_name
-
-# Update CPU limit
-docker update --cpus="2" container_name
-
-# Update restart policy
-docker update --restart unless-stopped container_name
-
-# Update multiple containers
-docker update --memory="1g" --cpus="2" container1 container2
-```
-
----
-
-## Container Best Practices
-
-### 1. Use Specific Tags
-
-```bash
-# Bad: unpredictable
-docker run nginx:latest
-
-# Good: specific version
-docker run nginx:1.25-alpine
-```
-
-### 2. Remove Containers After Use
-
-```bash
-# Automatically remove after exit
-docker run --rm nginx
-
-# For testing/one-off commands
-docker run --rm -it ubuntu bash
-```
-
-### 3. Name Your Containers
-
-```bash
-# Good: easy to identify and manage
-docker run --name web-server nginx
-
-# Easier to reference
-docker logs web-server
-docker stop web-server
-```
-
-### 4. Use Volume for Persistent Data
-
-```bash
-# Good: data persists
-docker run -v data:/var/lib/postgresql/data postgres
-
-# Bad: data lost when container removed
-docker run postgres
-```
-
-### 5. Don't Run as Root
-
-```bash
-# Specify user
-docker run --user 1001 nginx
-
-# Or in Dockerfile
-USER nodejs
-```
-
-### 6. Set Resource Limits
-
-```bash
+# Multiple variables
 docker run \
-  --memory="512m" \
-  --cpus="1" \
-  nginx
-```
-
-### 7. Use Health Checks
-
-```bash
-docker run \
-  --health-cmd="curl -f http://localhost/ || exit 1" \
-  --health-interval=30s \
-  nginx
-```
-
-### 8. Implement Proper Logging
-
-```bash
-# View logs
-docker logs -f container_name
-
-# Configure log driver
-docker run --log-driver json-file --log-opt max-size=10m nginx
-```
-
----
-
-## Common Container Patterns
-
-### 1. Database Container
-
-```bash
-docker run -d \
-  --name postgres \
-  --restart unless-stopped \
-  -e POSTGRES_PASSWORD=secret \
-  -e POSTGRES_USER=myuser \
-  -e POSTGRES_DB=mydb \
-  -v pgdata:/var/lib/postgresql/data \
-  -p 5432:5432 \
-  postgres:15-alpine
-```
-
-### 2. Web Application
-
-```bash
-docker run -d \
-  --name web-app \
-  --restart unless-stopped \
-  -p 80:3000 \
   -e NODE_ENV=production \
-  -v $(pwd)/logs:/app/logs \
-  --memory="512m" \
-  --cpus="1" \
-  myapp:latest
+  -e DB_HOST=localhost \
+  -e DB_PORT=5432 \
+  my-app
+
+# From a file
+docker run --env-file .env my-app
 ```
 
-### 3. Development Container
+---
+
+## Container Networks
+
+### How Containers Communicate
+
+By default, containers can communicate with each other using Docker networks.
 
 ```bash
-docker run -it --rm \
-  --name dev \
-  -v $(pwd):/app \
-  -w /app \
+# Create a network
+docker network create my-network
+
+# Run containers on the same network
+docker run -d --name database --network my-network postgres
+docker run -d --name api --network my-network my-api
+
+# Containers can reach each other by name!
+# From "api" container: postgres://database:5432/mydb
+```
+
+### Network Commands
+
+```bash
+# List networks
+docker network ls
+
+# Inspect a network
+docker network inspect my-network
+
+# Remove a network
+docker network rm my-network
+```
+
+---
+
+## Complete Example
+
+Here's a typical development setup:
+
+```bash
+# 1. Create a network
+docker network create myapp-network
+
+# 2. Run database with volume
+docker run -d \
+  --name db \
+  --network myapp-network \
+  -e POSTGRES_PASSWORD=secret \
+  -v dbdata:/var/lib/postgresql/data \
+  postgres:15
+
+# 3. Run application
+docker run -d \
+  --name api \
+  --network myapp-network \
+  -e DATABASE_URL=postgres://postgres:secret@db:5432/postgres \
   -p 3000:3000 \
-  node:18-alpine \
-  sh
-```
+  my-api
 
-### 4. Temporary Test Container
+# 4. View logs
+docker logs -f api
 
-```bash
-docker run --rm -it \
-  --name test \
-  -v $(pwd):/app \
-  -w /app \
-  node:18-alpine \
-  npm test
+# 5. Cleanup when done
+docker stop api db
+docker rm api db
+# Data is preserved in dbdata volume!
 ```
 
 ---
 
-## Troubleshooting Containers
+## Essential Commands Summary
 
-### Common Issues
-
-```bash
-# Container won't start
-docker logs container_name
-docker inspect container_name
-
-# Port already in use
-docker ps --filter "publish=8080"
-docker run -p 8081:80 nginx  # Use different port
-
-# Permission denied
-docker run --user $(id -u):$(id -g) nginx
-docker exec -it --user root container_name chown -R user:group /path
-
-# Out of memory
-docker stats container_name
-docker update --memory="1g" container_name
-
-# Check container exit code
-docker inspect --format='{{.State.ExitCode}}' container_name
-
-# View container events
-docker events --filter container=container_name
-```
-
-### Debugging
-
-```bash
-# Enter container for debugging
-docker exec -it container_name bash
-
-# Check processes
-docker top container_name
-
-# Check resource usage
-docker stats container_name
-
-# View filesystem changes
-docker diff container_name
-
-# Export container filesystem
-docker export container_name > container.tar
-```
-
----
-
-## Container Commands Reference
-
-```bash
-# Lifecycle
-docker create IMAGE              # Create container
-docker run IMAGE                 # Create and start
-docker start CONTAINER           # Start stopped container
-docker stop CONTAINER            # Stop gracefully
-docker restart CONTAINER         # Restart container
-docker kill CONTAINER            # Force stop
-docker rm CONTAINER              # Remove container
-docker pause CONTAINER           # Pause container
-docker unpause CONTAINER         # Unpause container
-
-# Information
-docker ps                        # List running containers
-docker ps -a                     # List all containers
-docker logs CONTAINER            # View logs
-docker inspect CONTAINER         # Detailed info
-docker top CONTAINER             # Running processes
-docker stats CONTAINER           # Resource usage
-docker port CONTAINER            # Port mappings
-
-# Interaction
-docker exec CONTAINER CMD        # Execute command
-docker attach CONTAINER          # Attach to container
-docker cp SRC DEST              # Copy files
-
-# Resource Management
-docker update CONTAINER          # Update configuration
-docker rename OLD NEW            # Rename container
-docker wait CONTAINER            # Wait for container to stop
-
-# Cleanup
-docker container prune           # Remove stopped containers
-```
+| Command | Purpose |
+|---------|---------|
+| `docker run -d IMAGE` | Run container in background |
+| `docker ps` | List running containers |
+| `docker ps -a` | List all containers |
+| `docker stop NAME` | Stop a container |
+| `docker start NAME` | Start a stopped container |
+| `docker rm NAME` | Remove a container |
+| `docker logs NAME` | View container logs |
+| `docker exec -it NAME sh` | Open shell in container |
+| `docker volume ls` | List volumes |
+| `docker volume create NAME` | Create a volume |
+| `docker network create NAME` | Create a network |
 
 ---
 
@@ -789,14 +448,13 @@ docker container prune           # Remove stopped containers
 
 | Concept | Key Points |
 |---------|------------|
-| **Containers** | Running instances of images, isolated and ephemeral |
-| **Creating** | Use `docker run` with appropriate options |
-| **Managing** | Start, stop, restart, remove containers |
-| **Networking** | Port mapping, custom networks, container communication |
-| **Storage** | Volumes for persistence, bind mounts for development |
-| **Resources** | Set memory and CPU limits for stability |
-| **Best Practices** | Name containers, use volumes, set limits, health checks |
+| **Container** | Running instance of an image |
+| **Ports** | Use `-p host:container` to access applications |
+| **Volumes** | Persist data beyond container lifecycle |
+| **Named Volumes** | Docker-managed, best for databases |
+| **Bind Mounts** | Link host folders, best for development |
+| **Networks** | Allow containers to communicate |
 
 ## Next Topic
 
-Continue to [Docker CLI](./05-docker-cli.md) to master Docker command-line operations.
+Continue to [Docker CLI](./05-docker-cli.md) for a quick reference of all Docker commands.
