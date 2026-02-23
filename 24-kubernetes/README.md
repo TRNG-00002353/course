@@ -6,62 +6,34 @@ Kubernetes is an open-source container orchestration platform for automating dep
 ## Learning Objectives
 By the end of this module, you will be able to:
 - Understand container orchestration and Kubernetes architecture
-- Deploy and manage containerized applications using Kubernetes objects
+- Deploy and manage applications using Pods, ReplicaSets, and Deployments
 - Configure applications using ConfigMaps and Secrets
 - Manage persistent storage using Volumes, PVs, and PVCs
-- Implement networking, service discovery, and ingress controllers
+- Expose applications using Services and Ingress controllers
 - Secure pod-to-pod communication with Network Policies
 - Use kubectl CLI for cluster management and troubleshooting
 
 ## Topics Covered
 
-### 1. [Kubernetes Introduction](./topics/01-kubernetes-introduction.md)
+### 1. [Kubernetes Fundamentals](./topics/01-kubernetes-fundamentals.md)
 - What is Container Orchestration?
-- Kubernetes Architecture
-- Master and Worker Nodes
-- Control Plane Components (API Server, etcd, Scheduler, Controller Manager)
-- Worker Node Components (kubelet, kube-proxy, Container Runtime)
-- Communication Flow
-- Cluster Types and Setup
-
-### 2. [Kubernetes Objects](./topics/02-kubernetes-objects.md)
-- Pods (Single and Multi-Container)
-- ReplicaSets
+- Kubernetes Architecture (Control Plane, Worker Nodes)
+- Pods (Smallest Deployable Unit)
+- ReplicaSets (Maintaining Pod Replicas)
 - Deployments (Rolling Updates, Rollbacks, Scaling)
-- Services (ClusterIP, NodePort, LoadBalancer, Headless)
-- Namespaces (Resource Isolation, Quotas)
-- Labels and Selectors
+- Namespaces (Resource Isolation)
 
-### 3. [Configuration Management](./topics/03-configuration.md)
-- ConfigMaps (Environment Variables, Volume Mounts)
-- Secrets (Types, Security Best Practices)
-- Kubernetes Configuration Files (YAML)
-- Resource Specifications
-- Health Probes (Liveness, Readiness, Startup)
+### 2. [Services and Configuration](./topics/02-services-and-configuration.md)
+- Services (ClusterIP, NodePort, LoadBalancer)
+- ConfigMaps (Non-sensitive Configuration)
+- Secrets (Sensitive Data Management)
+- Storage (Volumes, PersistentVolumes, PersistentVolumeClaims)
 
-### 4. [Networking](./topics/04-networking.md)
-- Kubernetes Networking Model
-- Pod-to-Pod Communication
-- Service Discovery (DNS-based, Environment Variables)
-- Ingress Controllers (NGINX, Path-based, Host-based Routing)
-- TLS/SSL Termination
-- Network Policies (Ingress, Egress, Security)
-
-### 5. [kubectl CLI Commands](./topics/05-kubectl-cli.md)
-- Installation and Configuration
-- Basic Operations (Create, Read, Update, Delete)
-- Deployment Management (Rollout, Rollback, Scale)
-- Debugging Commands (Logs, Exec, Describe, Events)
-- Advanced Operations (Labels, Contexts, Patching)
-- Productivity Tips and Aliases
-
-### 6. [Storage](./topics/06-storage.md)
-- Volumes (emptyDir, hostPath, configMap, secret)
-- Persistent Volumes (PV)
-- Persistent Volume Claims (PVC)
-- Storage Classes and Dynamic Provisioning
-- Access Modes and Reclaim Policies
-- Practical Storage Examples
+### 3. [Networking and kubectl](./topics/03-networking-and-kubectl.md)
+- Service Discovery (DNS-based)
+- Ingress Controllers (Path-based, Host-based Routing, TLS)
+- Network Policies (Ingress, Egress Rules)
+- kubectl CLI (Essential Commands, Debugging, Rollouts)
 
 ## Key Commands Reference
 
@@ -95,29 +67,26 @@ kubectl create secret generic <name> --from-literal=key=value
 kubectl get configmaps
 kubectl get secrets
 
-# Storage Operations
+# Storage
 kubectl get pv
 kubectl get pvc
-kubectl get storageclass
-kubectl describe pvc <pvc-name>
 
 # Apply Resources
 kubectl apply -f <file.yaml>
 kubectl delete -f <file.yaml>
 kubectl get all
-kubectl get all -n <namespace>
 ```
 
 ## Key Concepts
 
 ### Container Orchestration
-- **Automated Deployment**: Deploy containers across a cluster of machines
+- **Automated Deployment**: Deploy containers across a cluster
 - **Auto-scaling**: Scale applications based on demand
 - **Self-healing**: Automatically restart failed containers
-- **Load Balancing**: Distribute traffic across container instances
+- **Load Balancing**: Distribute traffic across instances
 - **Service Discovery**: Automatically discover and connect services
 
-### Kubernetes Objects
+### Core Kubernetes Objects
 - **Pods**: Smallest deployable units containing one or more containers
 - **Deployments**: Declarative updates for Pods and ReplicaSets
 - **Services**: Stable networking abstraction for accessing Pods
@@ -131,9 +100,7 @@ kubectl get all -n <namespace>
 - **Ingress**: HTTP/HTTPS routing from outside the cluster
 - **Network Policies**: Firewall rules for pod-to-pod communication
 
-## Practical Examples
-
-### Deploy a Simple Application
+## Quick Start Example
 
 ```bash
 # Create deployment
@@ -151,49 +118,27 @@ kubectl scale deployment nginx --replicas=5
 # Update image
 kubectl set image deployment/nginx nginx=nginx:1.20
 
-# Check rollout status
+# Check rollout
 kubectl rollout status deployment/nginx
 ```
 
-### Deploy Multi-Tier Application
-
-```bash
-# Apply all resources from directory
-kubectl apply -f ./kubernetes-manifests/
-
-# Check all resources in namespace
-kubectl get all -n production
-
-# View logs
-kubectl logs -f deployment/webapp -n production
-
-# Access application
-kubectl port-forward service/webapp 8080:80 -n production
-```
-
 ## Exercises
-See the [exercises](./exercises/) directory for hands-on practice problems and solutions.
+See the [exercises](./exercises/) directory for hands-on practice problems.
 
 ## Additional Resources
 
 ### Official Documentation
 - [Kubernetes Documentation](https://kubernetes.io/docs/)
 - [kubectl Reference](https://kubernetes.io/docs/reference/kubectl/)
-- [Kubernetes API Reference](https://kubernetes.io/docs/reference/kubernetes-api/)
 
 ### Learning Platforms
 - [Kubernetes Tutorials](https://kubernetes.io/docs/tutorials/)
-- [Katacoda Kubernetes Scenarios](https://www.katacoda.com/courses/kubernetes)
 - [Play with Kubernetes](https://labs.play-with-k8s.com/)
 
-### Tools and Utilities
+### Tools
 - [Minikube](https://minikube.sigs.k8s.io/) - Local Kubernetes cluster
 - [k9s](https://k9scli.io/) - Terminal UI for Kubernetes
 - [Lens](https://k8slens.dev/) - Kubernetes IDE
-- [Helm](https://helm.sh/) - Package manager for Kubernetes
-
-### Cheat Sheets
-- See [resources/cheat-sheets/kubernetes.md](../resources/cheat-sheets/)
 
 ## Assessment
 
@@ -201,24 +146,13 @@ You should be comfortable with:
 - [ ] Understanding Kubernetes architecture and components
 - [ ] Creating and managing Pods, Deployments, and Services
 - [ ] Configuring applications with ConfigMaps and Secrets
-- [ ] Managing persistent storage with PVs, PVCs, and Storage Classes
+- [ ] Managing persistent storage with PVs, PVCs
 - [ ] Implementing service discovery and ingress routing
 - [ ] Applying Network Policies for security
 - [ ] Using kubectl for cluster management and troubleshooting
-- [ ] Debugging common Kubernetes issues
-- [ ] Deploying multi-tier applications
-
-## Next Steps
-
-Once you've completed this module and feel confident with Kubernetes, proceed to:
-- Continue practicing with real-world scenarios
-- Explore advanced topics like StatefulSets, DaemonSets, and Jobs
-- Learn about Helm for package management
-- Implement CI/CD pipelines with Kubernetes
-- Study Kubernetes security best practices
 
 ---
 
-**Time Estimate:** 3 days
-**Difficulty:** Intermediate
+**Time Estimate:** 2 days
+**Difficulty:** Beginner to Intermediate
 **Prerequisites:** Docker, Container Fundamentals, Linux Basics
