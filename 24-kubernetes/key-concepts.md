@@ -946,6 +946,124 @@ kubectl get pods -w
 
 ---
 
+## 9. Storage - Persistent Data
+
+### Why It Matters
+- Containers are ephemeral - data is lost on restart
+- Databases and stateful apps need persistent storage
+- Share data between containers in a pod
+- Separate storage lifecycle from pod lifecycle
+
+### Key Concepts
+
+| Resource | Purpose | Lifecycle |
+|----------|---------|-----------|
+| Volume | Mount storage in pod | Pod lifetime (varies by type) |
+| emptyDir | Temporary storage | Deleted with pod |
+| PersistentVolume (PV) | Cluster storage resource | Independent of pods |
+| PersistentVolumeClaim (PVC) | Request for storage | Bound to PV |
+| StorageClass | Dynamic provisioning | Cluster lifetime |
+
+### Volume Types
+
+| Type | Use Case | Persistence |
+|------|----------|-------------|
+| emptyDir | Temp files, cache | Pod lifetime only |
+| hostPath | Dev/testing only | Node lifetime |
+| persistentVolumeClaim | Production data | Beyond pod lifetime |
+| configMap | Config files | ConfigMap lifetime |
+| secret | Sensitive files | Secret lifetime |
+
+### Simple emptyDir (Temporary Storage)
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cache-pod
+spec:
+  containers:
+  - name: app
+    image: myapp
+    volumeMounts:
+    - name: cache
+      mountPath: /cache
+  volumes:
+  - name: cache
+    emptyDir: {}
+```
+
+### PersistentVolume and PVC
+```yaml
+# PersistentVolume (Admin creates)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: my-pv
+spec:
+  storageClassName: standard
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/data
+---
+# PersistentVolumeClaim (User creates)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-pvc
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+# Pod using PVC
+apiVersion: v1
+kind: Pod
+metadata:
+  name: db-pod
+spec:
+  containers:
+  - name: postgres
+    image: postgres:13
+    volumeMounts:
+    - name: data
+      mountPath: /var/lib/postgresql/data
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: my-pvc
+```
+
+### Access Modes
+
+| Mode | Short | Description |
+|------|-------|-------------|
+| ReadWriteOnce | RWO | Single node read-write |
+| ReadOnlyMany | ROX | Multi-node read-only |
+| ReadWriteMany | RWX | Multi-node read-write |
+
+### Storage Commands
+```bash
+# PersistentVolumes
+kubectl get pv
+kubectl describe pv my-pv
+
+# PersistentVolumeClaims
+kubectl get pvc
+kubectl describe pvc my-pvc
+
+# StorageClasses
+kubectl get storageclass
+kubectl get sc
+```
+
+---
+
 ## Quick Reference Card
 
 ### Essential Commands
@@ -1079,6 +1197,7 @@ By the end of this module, developers should be able to:
 - [ ] Expose applications using Services
 - [ ] Manage configuration with ConfigMaps
 - [ ] Handle secrets securely
+- [ ] Configure persistent storage with PVs and PVCs
 - [ ] Configure HTTP routing with Ingress
 - [ ] Use Namespaces for resource isolation
 - [ ] Perform rolling updates and rollbacks

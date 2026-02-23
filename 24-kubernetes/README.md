@@ -8,6 +8,7 @@ By the end of this module, you will be able to:
 - Understand container orchestration and Kubernetes architecture
 - Deploy and manage containerized applications using Kubernetes objects
 - Configure applications using ConfigMaps and Secrets
+- Manage persistent storage using Volumes, PVs, and PVCs
 - Implement networking, service discovery, and ingress controllers
 - Secure pod-to-pod communication with Network Policies
 - Use kubectl CLI for cluster management and troubleshooting
@@ -54,6 +55,14 @@ By the end of this module, you will be able to:
 - Advanced Operations (Labels, Contexts, Patching)
 - Productivity Tips and Aliases
 
+### 6. [Storage](./topics/06-storage.md)
+- Volumes (emptyDir, hostPath, configMap, secret)
+- Persistent Volumes (PV)
+- Persistent Volume Claims (PVC)
+- Storage Classes and Dynamic Provisioning
+- Access Modes and Reclaim Policies
+- Practical Storage Examples
+
 ## Key Commands Reference
 
 ```bash
@@ -86,6 +95,12 @@ kubectl create secret generic <name> --from-literal=key=value
 kubectl get configmaps
 kubectl get secrets
 
+# Storage Operations
+kubectl get pv
+kubectl get pvc
+kubectl get storageclass
+kubectl describe pvc <pvc-name>
+
 # Apply Resources
 kubectl apply -f <file.yaml>
 kubectl delete -f <file.yaml>
@@ -108,6 +123,7 @@ kubectl get all -n <namespace>
 - **Services**: Stable networking abstraction for accessing Pods
 - **ConfigMaps/Secrets**: Configuration and sensitive data management
 - **Namespaces**: Virtual clusters for resource isolation
+- **PersistentVolumes/PVCs**: Persistent storage for stateful applications
 
 ### Networking
 - **Flat Network**: All pods can communicate without NAT
@@ -185,6 +201,7 @@ You should be comfortable with:
 - [ ] Understanding Kubernetes architecture and components
 - [ ] Creating and managing Pods, Deployments, and Services
 - [ ] Configuring applications with ConfigMaps and Secrets
+- [ ] Managing persistent storage with PVs, PVCs, and Storage Classes
 - [ ] Implementing service discovery and ingress routing
 - [ ] Applying Network Policies for security
 - [ ] Using kubectl for cluster management and troubleshooting
