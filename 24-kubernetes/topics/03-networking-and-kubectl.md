@@ -1,87 +1,151 @@
 # Networking and kubectl
 
-## Service Discovery
+## Completing Our Scenario
 
-Kubernetes provides built-in DNS for service discovery using CoreDNS.
+We now have:
+- Frontend deployment with 3 replicas
+- Backend deployment with 2 replicas
+- Database with persistent storage
+- Services connecting them internally
 
-### DNS Format
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Our Application So Far                        │
+│                                                                  │
+│                          ??? ◄─── How do external users get in? │
+│                           │                                      │
+│                           ▼                                      │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐         │
+│  │ Frontend    │───►│ Backend     │───►│ Database    │         │
+│  │ Service     │    │ Service     │    │ Service     │         │
+│  └─────────────┘    └─────────────┘    └─────────────┘         │
+│        │                  │                  │                   │
+│        ▼                  ▼                  ▼                   │
+│  ┌───────────┐      ┌───────────┐      ┌───────────┐           │
+│  │  Pods     │      │  Pods     │      │  Pod+PVC  │           │
+│  └───────────┘      └───────────┘      └───────────┘           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Remaining questions:**
+1. How do external users access our application?
+2. How do we route different URLs to different services?
+3. How do we secure communication between pods?
+4. How do we manage all of this?
+
+---
+
+## Service Discovery: How Pods Find Each Other
+
+Before we expose our app externally, let's understand internal communication.
+
+### The Problem
+
+Your frontend pod needs to call the backend. But backend pods can be anywhere in the cluster, and their IPs change constantly.
+
+### The Solution: DNS-Based Discovery
+
+Kubernetes automatically creates DNS records for services:
 
 ```
 <service-name>.<namespace>.svc.cluster.local
 ```
 
-### Accessing Services
-
-```bash
-# Within same namespace (short name)
-curl http://backend-service
-
-# Cross-namespace (full DNS name)
-curl http://backend-service.production.svc.cluster.local
-
-# From any namespace
-curl http://api-service.staging.svc.cluster.local:8080
-```
-
-### Service Discovery Example
+### How It Works
 
 ```yaml
-# Backend Service
+# Backend Service in 'production' namespace
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-api
+  name: backend-service
   namespace: production
-spec:
-  selector:
-    app: backend
-  ports:
-  - port: 8080
----
-# Frontend Pod uses backend via DNS
+```
+
+Your frontend can now reach it using:
+
+```bash
+# From same namespace - just use service name
+curl http://backend-service:8080
+
+# From different namespace - include namespace
+curl http://backend-service.production:8080
+
+# Full DNS name (always works)
+curl http://backend-service.production.svc.cluster.local:8080
+```
+
+### Real-World Example
+
+```yaml
+# Frontend deployment that calls backend
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
 spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: frontend
   template:
-    metadata:
-      labels:
-        app: frontend
     spec:
       containers:
       - name: webapp
         image: myapp/frontend:1.0
         env:
         - name: BACKEND_URL
-          value: "http://backend-api:8080"
+          value: "http://backend-service:8080"    # DNS name!
 ```
+
+**Key insight:** Always use service DNS names, never pod IPs.
 
 ---
 
-## Ingress Controllers
+## Ingress: External Access with Smart Routing
 
-**Ingress** exposes HTTP/HTTPS routes from outside the cluster to internal services.
+### The Problem with LoadBalancer Services
 
-### Ingress vs Service
+Each LoadBalancer service creates a new cloud load balancer:
 
-| Feature | Service (LoadBalancer) | Ingress |
-|---------|----------------------|---------|
-| **Layer** | L4 (TCP/UDP) | L7 (HTTP/HTTPS) |
-| **Cost** | One LB per service | One LB for all services |
-| **Routing** | Port-based | Path/host-based |
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Expensive! Each service = One load balancer                 │
+│                                                              │
+│  api.example.com  ──►  LoadBalancer ($$$)  ──►  API Service │
+│  www.example.com  ──►  LoadBalancer ($$$)  ──►  Web Service │
+│  admin.example.com ──► LoadBalancer ($$$)  ──►  Admin Service│
+└─────────────────────────────────────────────────────────────┘
+```
 
-### Basic Ingress
+### The Solution: Ingress
+
+**Ingress** is a single entry point that routes traffic based on URL paths or hostnames:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  One load balancer for all services!                         │
+│                                                              │
+│  All traffic ──► LoadBalancer ──► Ingress Controller        │
+│                                          │                   │
+│                    ┌─────────────────────┼───────────────┐  │
+│                    │                     │               │  │
+│                    ▼                     ▼               ▼  │
+│               api.example.com    www.example.com   /admin   │
+│                    │                     │               │  │
+│                    ▼                     ▼               ▼  │
+│              API Service           Web Service    Admin Svc │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### How Ingress Works
+
+1. **Ingress Controller** - A pod that runs nginx/traefik (you install this once)
+2. **Ingress Resource** - Your routing rules (you create per application)
+
+### Basic Ingress Example
 
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: basic-ingress
+  name: app-ingress
 spec:
   ingressClassName: nginx
   rules:
@@ -92,60 +156,62 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: webapp-service
+            name: frontend-service
             port:
               number: 80
 ```
 
+Now `http://myapp.example.com` routes to your frontend service.
+
 ### Path-Based Routing
+
+Route different URL paths to different services:
 
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: path-ingress
+  name: app-ingress
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.example.com
+  - host: myapp.example.com
     http:
       paths:
-      - path: /api
+      - path: /api                     # myapp.example.com/api/*
         pathType: Prefix
         backend:
           service:
-            name: api-service
+            name: backend-service
             port:
               number: 8080
-      - path: /admin
+      - path: /                        # myapp.example.com/*
         pathType: Prefix
         backend:
           service:
-            name: admin-service
+            name: frontend-service
             port:
-              number: 8080
+              number: 80
+```
+
+```
+https://myapp.example.com/           →  frontend-service
+https://myapp.example.com/api/users  →  backend-service
+https://myapp.example.com/api/orders →  backend-service
 ```
 
 ### Host-Based Routing
 
+Route different domains to different services:
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: host-ingress
+  name: multi-host-ingress
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.example.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: api-service
-            port:
-              number: 8080
   - host: www.example.com
     http:
       paths:
@@ -156,9 +222,19 @@ spec:
             name: web-service
             port:
               number: 80
+  - host: api.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-service
+            port:
+              number: 8080
 ```
 
-### TLS/SSL Termination
+### TLS/HTTPS
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -167,10 +243,10 @@ metadata:
   name: tls-ingress
 spec:
   ingressClassName: nginx
-  tls:
+  tls:                              # Enable HTTPS
   - hosts:
     - myapp.example.com
-    secretName: tls-secret
+    secretName: tls-secret          # Certificate stored in Secret
   rules:
   - host: myapp.example.com
     http:
@@ -179,7 +255,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: webapp-service
+            name: frontend-service
             port:
               number: 80
 ```
@@ -188,17 +264,39 @@ spec:
 
 ```bash
 kubectl get ingress
-kubectl describe ingress basic-ingress
-kubectl delete ingress basic-ingress
+kubectl describe ingress app-ingress
+kubectl delete ingress app-ingress
 ```
 
 ---
 
-## Network Policies
+## Network Policies: Securing Pod Communication
 
-**Network Policies** are firewall rules for pod-to-pod communication.
+### The Problem
 
-### Default Deny All
+By default, any pod can talk to any other pod in the cluster:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Default: Everything can talk to everything!                 │
+│                                                              │
+│  Frontend ──────► Backend ──────► Database                  │
+│      │               │               ▲                       │
+│      │               │               │                       │
+│      └───────────────┴───────────────┘  ← This is bad!      │
+│         Frontend shouldn't access DB directly                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### The Solution: Network Policies
+
+**Network Policies** are firewall rules for pods. They define:
+- **Ingress**: Who can send traffic TO this pod
+- **Egress**: Where can this pod send traffic TO
+
+### Start with Default Deny
+
+Best practice: Block everything, then allow specific traffic.
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -207,212 +305,383 @@ metadata:
   name: default-deny-all
   namespace: production
 spec:
-  podSelector: {}    # Applies to all pods
+  podSelector: {}                  # Apply to ALL pods
   policyTypes:
   - Ingress
   - Egress
 ```
 
-### Allow Specific Ingress
+Now no pod can communicate. Let's allow what we need.
+
+### Allow Frontend to Backend
 
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-frontend-to-backend
+  name: backend-allow-frontend
+  namespace: production
 spec:
   podSelector:
     matchLabels:
-      app: backend
+      app: backend                 # Apply to backend pods
   policyTypes:
   - Ingress
   ingress:
   - from:
     - podSelector:
         matchLabels:
-          app: frontend
+          app: frontend            # Allow from frontend pods
     ports:
     - protocol: TCP
       port: 8080
 ```
 
-### Allow Specific Egress
+### Allow Backend to Database
 
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-backend-to-database
+  name: database-allow-backend
+  namespace: production
 spec:
   podSelector:
     matchLabels:
-      app: backend
+      app: database
   policyTypes:
-  - Egress
-  egress:
-  - to:
+  - Ingress
+  ingress:
+  - from:
     - podSelector:
         matchLabels:
-          app: database
+          app: backend             # Only backend can access DB
     ports:
     - protocol: TCP
       port: 5432
+```
+
+### The Result
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  With Network Policies: Controlled communication             │
+│                                                              │
+│  Frontend ──────► Backend ──────► Database                  │
+│      │               │                                       │
+│      X               X           ← Frontend can't reach DB   │
+│      └───────────────┘             directly anymore!         │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### Network Policy Commands
 
 ```bash
 kubectl get networkpolicies
-kubectl describe networkpolicy allow-frontend-to-backend
-kubectl delete networkpolicy allow-frontend-to-backend
+kubectl get netpol
+kubectl describe networkpolicy backend-allow-frontend
 ```
 
 ---
 
-## kubectl Essentials
+## kubectl: Managing Everything
 
-### Command Structure
+Now that we understand the components, let's master the tool that manages them.
 
-```bash
-kubectl [command] [TYPE] [NAME] [flags]
-```
+### The Essential Commands
 
-### Creating Resources
+#### Creating Resources
 
 ```bash
-# Imperative
-kubectl create deployment nginx --image=nginx:1.19
-kubectl run nginx --image=nginx
-kubectl expose deployment nginx --port=80 --type=LoadBalancer
-
-# Declarative (recommended)
+# Declarative (recommended) - from YAML file
 kubectl apply -f deployment.yaml
-kubectl apply -f ./manifests/
+kubectl apply -f ./manifests/           # All files in directory
+
+# Imperative - quick commands
+kubectl create deployment nginx --image=nginx
+kubectl run test-pod --image=busybox
+kubectl expose deployment nginx --port=80
 ```
 
-### Viewing Resources
+#### Viewing Resources
 
 ```bash
-kubectl get pods                    # List pods
-kubectl get pods -o wide            # More details
-kubectl get pods -A                 # All namespaces
-kubectl get all                     # All resources
-kubectl describe pod nginx-pod      # Detailed info
-kubectl get pods -w                 # Watch for changes
-kubectl get pods -l app=nginx       # Filter by label
+# List resources
+kubectl get pods
+kubectl get pods -o wide                 # More details
+kubectl get pods -A                      # All namespaces
+kubectl get all                          # All resource types
+
+# Detailed information
+kubectl describe pod nginx-pod
+kubectl describe deployment frontend
+
+# Watch for changes (real-time)
+kubectl get pods -w
 ```
 
-### Updating Resources
+#### Debugging
 
 ```bash
-kubectl edit deployment nginx
-kubectl set image deployment/nginx nginx=nginx:1.20
-kubectl scale deployment nginx --replicas=5
+# View logs
+kubectl logs nginx-pod
+kubectl logs nginx-pod -f                # Follow (stream)
+kubectl logs nginx-pod --previous        # Previous container
+
+# Execute commands in pod
+kubectl exec nginx-pod -- ls /var
+kubectl exec -it nginx-pod -- /bin/bash  # Interactive shell
+
+# Port forwarding (access pod locally)
+kubectl port-forward pod/nginx-pod 8080:80
+kubectl port-forward service/nginx-svc 8080:80
 ```
 
-### Deleting Resources
+#### Managing Deployments
+
+```bash
+# Scale
+kubectl scale deployment frontend --replicas=5
+
+# Update image (triggers rolling update)
+kubectl set image deployment/frontend nginx=nginx:1.20
+
+# Check rollout status
+kubectl rollout status deployment/frontend
+
+# View rollout history
+kubectl rollout history deployment/frontend
+
+# Rollback
+kubectl rollout undo deployment/frontend
+```
+
+#### Deleting Resources
 
 ```bash
 kubectl delete pod nginx-pod
 kubectl delete -f deployment.yaml
-kubectl delete pods -l app=nginx
+kubectl delete deployment frontend
 ```
 
-### Debugging
+### Working with Namespaces
 
 ```bash
-# Logs
-kubectl logs nginx-pod
-kubectl logs -f nginx-pod           # Follow logs
-kubectl logs nginx-pod --previous   # Previous container
+# List namespaces
+kubectl get namespaces
 
-# Execute commands
-kubectl exec nginx-pod -- ls /var
-kubectl exec -it nginx-pod -- /bin/bash
-
-# Port forwarding
-kubectl port-forward pod/nginx-pod 8080:80
-kubectl port-forward service/nginx-service 8080:80
-```
-
-### Deployment Rollouts
-
-```bash
-kubectl rollout status deployment/nginx
-kubectl rollout history deployment/nginx
-kubectl rollout undo deployment/nginx
-kubectl rollout restart deployment/nginx
-```
-
-### Context and Namespace
-
-```bash
-kubectl config get-contexts
-kubectl config use-context production
-kubectl config set-context --current --namespace=dev
+# Work in specific namespace
 kubectl get pods -n production
+kubectl apply -f app.yaml -n production
+
+# Set default namespace
+kubectl config set-context --current --namespace=production
 ```
 
-### Cluster Info
+### Troubleshooting Checklist
+
+When something isn't working:
 
 ```bash
-kubectl cluster-info
-kubectl get nodes
-kubectl get events
-kubectl top pods
-kubectl top nodes
+# 1. Check pod status
+kubectl get pods
+# Look for: Running, Pending, CrashLoopBackOff, ImagePullBackOff
+
+# 2. Get detailed info
+kubectl describe pod <pod-name>
+# Look at: Events section at the bottom
+
+# 3. Check logs
+kubectl logs <pod-name>
+kubectl logs <pod-name> --previous      # If crashed
+
+# 4. Check events
+kubectl get events --sort-by='.lastTimestamp'
+
+# 5. Test connectivity
+kubectl exec -it <pod-name> -- curl http://service-name:port
+```
+
+### Quick Reference
+
+| Command | Description |
+|---------|-------------|
+| `kubectl get pods` | List pods |
+| `kubectl describe pod X` | Pod details |
+| `kubectl logs X` | View logs |
+| `kubectl exec -it X -- bash` | Shell into pod |
+| `kubectl apply -f X.yaml` | Create/update resource |
+| `kubectl delete -f X.yaml` | Delete resource |
+| `kubectl rollout undo deploy/X` | Rollback deployment |
+| `kubectl port-forward pod/X 8080:80` | Local access |
+
+---
+
+## Putting It All Together: Complete Application
+
+Here's our complete web application with all networking configured:
+
+```yaml
+# Complete production deployment
+---
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production
+---
+# Network Policy: Default deny
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+  namespace: production
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+---
+# Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: production
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.19
+        ports:
+        - containerPort: 80
+---
+# Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: production
+spec:
+  selector:
+    app: frontend
+  ports:
+  - port: 80
+---
+# Network Policy: Allow ingress to frontend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-ingress
+  namespace: production
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend
+  policyTypes: [Ingress]
+  ingress:
+  - ports:
+    - port: 80
+---
+# Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  namespace: production
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: myapp.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-service
+            port:
+              number: 80
+```
+
+### Deploy and Verify
+
+```bash
+# Deploy everything
+kubectl apply -f complete-app.yaml
+
+# Verify
+kubectl get all -n production
+kubectl get ingress -n production
+kubectl get networkpolicies -n production
+
+# Test
+kubectl port-forward service/frontend-service 8080:80 -n production
+# Open http://localhost:8080
 ```
 
 ---
 
-## Quick Reference
+## Summary: The Complete Picture
 
-### Resource Short Names
-
-| Resource | Short |
-|----------|-------|
-| pods | po |
-| services | svc |
-| deployments | deploy |
-| namespaces | ns |
-| configmaps | cm |
-| secrets | secret |
-| ingresses | ing |
-| persistentvolumeclaims | pvc |
-| networkpolicies | netpol |
-
-### Common Troubleshooting
-
-```bash
-# Pod not starting
-kubectl describe pod problematic-pod
-kubectl get events --field-selector involvedObject.name=problematic-pod
-
-# Check logs
-kubectl logs problematic-pod
-kubectl logs problematic-pod --previous
-
-# Test DNS
-kubectl run test --image=busybox --rm -it -- nslookup kubernetes.default
-
-# Generate YAML (dry-run)
-kubectl create deployment nginx --image=nginx --dry-run=client -o yaml
+```
+                            INTERNET
+                                │
+                                ▼
+                    ┌───────────────────────┐
+                    │       Ingress         │  ← Routes by URL/host
+                    │   myapp.example.com   │
+                    └───────────┬───────────┘
+                                │
+            ┌───────────────────┼───────────────────┐
+            │                   │                   │
+            ▼                   ▼                   ▼
+    ┌───────────────┐  ┌───────────────┐  ┌───────────────┐
+    │  /            │  │  /api         │  │  /admin       │
+    │  frontend-svc │  │  backend-svc  │  │  admin-svc    │
+    └───────┬───────┘  └───────┬───────┘  └───────┬───────┘
+            │                  │                   │
+            ▼                  ▼                   ▼
+    ┌───────────────┐  ┌───────────────┐  ┌───────────────┐
+    │  Frontend     │  │  Backend      │  │  Admin        │
+    │  Pods         │  │  Pods         │  │  Pods         │
+    │  (nginx)      │  │  (api)        │  │  (dashboard)  │
+    └───────────────┘  └───────┬───────┘  └───────────────┘
+                               │
+                    Network Policy allows
+                               │
+                               ▼
+                    ┌───────────────────┐
+                    │  database-svc     │
+                    │  (ClusterIP)      │
+                    └───────────────────┘
+                               │
+                               ▼
+                    ┌───────────────────┐
+                    │  Database Pod     │
+                    │  + PVC            │
+                    └───────────────────┘
 ```
 
----
+### Key Concepts Recap
 
-## Summary
+| Component | Purpose | When to Use |
+|-----------|---------|-------------|
+| **Service Discovery** | Pods find each other via DNS | Always for pod-to-pod |
+| **Ingress** | External HTTP/S access with routing | Production web apps |
+| **Network Policy** | Firewall rules between pods | Security requirements |
+| **kubectl** | Manage everything | Always |
 
-| Component | Purpose | Command |
-|-----------|---------|---------|
-| **Service Discovery** | DNS-based service lookup | `curl http://service-name` |
-| **Ingress** | HTTP/HTTPS routing | `kubectl get ing` |
-| **Network Policy** | Pod firewall rules | `kubectl get netpol` |
-| **kubectl** | Cluster management CLI | `kubectl get all` |
+### Key Takeaways
 
-### Key Points
-
-1. **Service Discovery** - Use DNS names, not pod IPs
-2. **Ingress** - Single entry point for HTTP traffic with routing
-3. **Network Policies** - Start with deny-all, then allow specific traffic
-4. **kubectl** - Prefer declarative (`apply -f`) over imperative commands
+1. **Service Discovery** - Use DNS names (`service-name.namespace`), not IPs
+2. **Ingress** - One entry point, smart routing by path/host
+3. **Network Policies** - Default deny, then allow specific traffic
+4. **kubectl** - Master these: `get`, `describe`, `logs`, `exec`, `apply`
+5. **Troubleshooting** - Always check: pod status → describe → logs → events

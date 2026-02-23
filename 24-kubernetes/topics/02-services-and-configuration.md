@@ -1,18 +1,67 @@
 # Services and Configuration
 
-## Services
+## Continuing Our Scenario
 
-A **Service** provides stable networking for pods. Since pod IPs change, Services give a fixed endpoint.
+We deployed our frontend application with 3 replicas. But there's a problem:
 
-### Service Types
+```
+┌─────────────────────────────────────────────────────────┐
+│  Frontend Deployment (3 pods)                            │
+│                                                          │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐      │
+│  │ Pod 1       │  │ Pod 2       │  │ Pod 3       │      │
+│  │ IP: 10.1.1.5│  │ IP: 10.1.2.8│  │ IP: 10.1.3.2│      │
+│  └─────────────┘  └─────────────┘  └─────────────┘      │
+│         ▲                                                │
+│         │                                                │
+│    How do users                                          │
+│    connect here?    Pod IPs change when pods restart!    │
+└─────────────────────────────────────────────────────────┘
+```
 
-| Type | Description | Use Case |
+**Problems:**
+1. Pod IPs are internal and change frequently
+2. Which pod should handle a request? (load balancing)
+3. How does the backend find the database?
+
+**Solution: Services**
+
+---
+
+## Services: Stable Networking for Pods
+
+A **Service** provides a stable IP address and DNS name that routes traffic to pods.
+
+```
+                         ┌─────────────────┐
+    Users ─────────────► │    Service      │
+                         │  IP: 10.96.1.50 │
+                         │  (never changes)│
+                         └────────┬────────┘
+                                  │ load balances
+                    ┌─────────────┼─────────────┐
+                    ▼             ▼             ▼
+              ┌─────────┐   ┌─────────┐   ┌─────────┐
+              │  Pod 1  │   │  Pod 2  │   │  Pod 3  │
+              │10.1.1.5 │   │10.1.2.8 │   │10.1.3.2 │
+              └─────────┘   └─────────┘   └─────────┘
+```
+
+**Key insight:** Services find pods using **labels**, not IP addresses.
+
+---
+
+## Service Types
+
+| Type | Access From | Use Case |
 |------|-------------|----------|
-| **ClusterIP** | Internal IP only (default) | Internal communication |
-| **NodePort** | Exposes on node IP:port (30000-32767) | Development, testing |
-| **LoadBalancer** | Cloud load balancer | Production external access |
+| **ClusterIP** | Inside cluster only | Backend services, databases |
+| **NodePort** | Outside via node IP:port | Development, testing |
+| **LoadBalancer** | External load balancer | Production external access |
 
-### ClusterIP Service (Default)
+### ClusterIP (Default) - Internal Communication
+
+Use when pods inside the cluster need to reach this service.
 
 ```yaml
 apiVersion: v1
@@ -20,15 +69,25 @@ kind: Service
 metadata:
   name: backend-service
 spec:
-  type: ClusterIP
+  type: ClusterIP              # Default, can be omitted
   selector:
-    app: backend
+    app: backend               # Route to pods with this label
   ports:
-  - port: 80
-    targetPort: 8080
+  - port: 80                   # Service listens on this port
+    targetPort: 8080           # Forward to this port on pods
 ```
 
-### NodePort Service
+```
+Frontend Pod                    Backend Service              Backend Pods
+┌───────────┐                  ┌──────────────┐            ┌───────────┐
+│           │ ──► port 80 ───► │   ClusterIP  │ ─► 8080 ─► │ app:backend│
+│           │                  │  10.96.1.50  │            └───────────┘
+└───────────┘                  └──────────────┘
+```
+
+### NodePort - External Access for Development
+
+Exposes the service on each node's IP at a static port (30000-32767).
 
 ```yaml
 apiVersion: v1
@@ -42,46 +101,151 @@ spec:
   ports:
   - port: 80
     targetPort: 8080
-    nodePort: 30080    # Access via <NodeIP>:30080
+    nodePort: 30080            # Access via <NodeIP>:30080
 ```
 
-### LoadBalancer Service
+```
+External User                     Node                        Pod
+┌───────────┐                  ┌───────────┐              ┌───────────┐
+│ Browser   │ ─► :30080 ─────► │ Worker    │ ──► 8080 ──►│ frontend  │
+│           │                  │ Node IP   │              │           │
+└───────────┘                  └───────────┘              └───────────┘
+
+Access: http://192.168.1.100:30080
+```
+
+### LoadBalancer - Production External Access
+
+Creates a cloud load balancer (AWS ELB, GCP LB, Azure LB).
 
 ```yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: web-service
+  name: frontend-service
 spec:
   type: LoadBalancer
   selector:
-    app: web
+    app: frontend
   ports:
   - port: 80
     targetPort: 8080
 ```
 
+```
+Internet                    Cloud Load Balancer              Pods
+┌───────────┐              ┌──────────────────┐          ┌───────────┐
+│   Users   │ ──► :80 ───► │  External IP     │ ───────► │ frontend  │
+│           │              │  (cloud assigned)│          │           │
+└───────────┘              └──────────────────┘          └───────────┘
+
+Access: http://34.120.45.67 (assigned by cloud provider)
+```
+
 ### Service Commands
 
 ```bash
-kubectl expose deployment nginx --port=80 --type=ClusterIP
+# Create service imperatively
+kubectl expose deployment frontend --port=80 --type=ClusterIP
+
+# List services
 kubectl get services
-kubectl describe service backend-service
-kubectl delete service backend-service
+kubectl get svc
+
+# See service details
+kubectl describe service frontend-service
+
+# Delete service
+kubectl delete service frontend-service
 ```
 
 ---
 
-## ConfigMaps
+## Our Scenario: Connecting Frontend to Backend
 
-**ConfigMaps** store non-sensitive configuration data as key-value pairs.
+Let's make our frontend talk to the backend:
 
-### Create ConfigMap
+```yaml
+# backend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: production
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: api
+        image: myapp/backend:1.0
+        ports:
+        - containerPort: 8080
+---
+# backend-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: production
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 8080
+    targetPort: 8080
+```
+
+Now frontend can reach backend at: `http://backend-service:8080`
+
+**But how does the backend know the database password?** We need configuration management.
+
+---
+
+## ConfigMaps: Application Configuration
+
+### The Problem
+
+Hardcoding configuration in container images is bad:
+- Different settings for dev/staging/prod
+- Must rebuild image for every config change
+- Secrets might leak into image
+
+### The Solution: ConfigMaps
+
+**ConfigMaps** store non-sensitive configuration as key-value pairs.
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     ConfigMap                            │
+│  ┌─────────────────────────────────────────────────┐    │
+│  │  DB_HOST: "postgres-service"                     │    │
+│  │  LOG_LEVEL: "info"                               │    │
+│  │  MAX_CONNECTIONS: "100"                          │    │
+│  └─────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────┘
+                           │
+                           ▼ injected as
+              ┌────────────────────────┐
+              │         Pod            │
+              │  env:                  │
+              │    DB_HOST=postgres... │
+              │    LOG_LEVEL=info      │
+              └────────────────────────┘
+```
+
+### Creating ConfigMaps
 
 ```bash
-# From literals
+# From command line
 kubectl create configmap app-config \
-  --from-literal=DB_HOST=mysql \
+  --from-literal=DB_HOST=postgres-service \
   --from-literal=LOG_LEVEL=info
 
 # From file
@@ -96,41 +260,54 @@ kind: ConfigMap
 metadata:
   name: app-config
 data:
-  DB_HOST: "mysql"
-  DB_PORT: "3306"
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
   LOG_LEVEL: "info"
 ```
 
-### Use in Pod (Environment Variables)
+### Using ConfigMap in Pods
+
+**Option 1: All values as environment variables**
 
 ```yaml
 apiVersion: v1
 kind: Pod
 metadata:
-  name: myapp
+  name: backend
 spec:
   containers:
-  - name: app
-    image: myapp:1.0
-    envFrom:
+  - name: api
+    image: myapp/backend:1.0
+    envFrom:                       # Inject ALL keys from ConfigMap
     - configMapRef:
         name: app-config
 ```
 
-### Use in Pod (Volume Mount)
+**Option 2: Specific values**
 
 ```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: myapp
 spec:
   containers:
-  - name: app
-    image: myapp:1.0
+  - name: api
+    image: myapp/backend:1.0
+    env:
+    - name: DATABASE_HOST          # Environment variable name
+      valueFrom:
+        configMapKeyRef:
+          name: app-config         # ConfigMap name
+          key: DB_HOST             # Key in ConfigMap
+```
+
+**Option 3: Mount as files**
+
+```yaml
+spec:
+  containers:
+  - name: api
+    image: myapp/backend:1.0
     volumeMounts:
     - name: config
-      mountPath: /etc/config
+      mountPath: /etc/config       # Files appear here
   volumes:
   - name: config
     configMap:
@@ -139,11 +316,18 @@ spec:
 
 ---
 
-## Secrets
+## Secrets: Sensitive Data
 
-**Secrets** store sensitive data (passwords, API keys). Values are base64 encoded.
+### Why Secrets?
 
-### Create Secret
+ConfigMaps are stored in plain text. For sensitive data like passwords and API keys, use **Secrets**.
+
+**Secrets provide:**
+- Base64 encoding (not encryption, but separation)
+- Can be encrypted at rest in etcd
+- Access can be restricted via RBAC
+
+### Creating Secrets
 
 ```bash
 kubectl create secret generic db-secret \
@@ -159,22 +343,22 @@ kind: Secret
 metadata:
   name: db-secret
 type: Opaque
-stringData:          # Use stringData (no base64 needed)
+stringData:                        # Use stringData for plain text
   username: admin
   password: secret123
 ```
 
-### Use in Pod
+### Using Secrets in Pods
 
 ```yaml
 apiVersion: v1
 kind: Pod
 metadata:
-  name: myapp
+  name: backend
 spec:
   containers:
-  - name: app
-    image: myapp:1.0
+  - name: api
+    image: myapp/backend:1.0
     env:
     - name: DB_USER
       valueFrom:
@@ -193,26 +377,42 @@ spec:
 ```bash
 kubectl get secrets
 kubectl describe secret db-secret
+
+# Decode a secret value
 kubectl get secret db-secret -o jsonpath='{.data.password}' | base64 -d
 ```
 
 ---
 
-## Storage
+## Storage: Persisting Data
 
 ### The Problem
 
-Containers are ephemeral - data is lost when pod restarts. **Volumes** solve this.
+Containers are ephemeral - when a pod restarts, all data inside is lost.
+
+```
+Pod running                    Pod crashes                  New Pod
+┌───────────────┐             ┌───────────────┐           ┌───────────────┐
+│ Database      │             │               │           │ Database      │
+│ ┌───────────┐ │   crash!    │      X        │  restart  │ ┌───────────┐ │
+│ │ user data │ │  ────────►  │               │ ────────► │ │  empty!   │ │
+│ └───────────┘ │             │               │           │ └───────────┘ │
+└───────────────┘             └───────────────┘           └───────────────┘
+```
+
+For databases and stateful apps, we need **persistent storage**.
 
 ### Volume Types
 
-| Type | Persistence | Use Case |
-|------|-------------|----------|
+| Type | Lifetime | Use Case |
+|------|----------|----------|
 | **emptyDir** | Pod lifetime | Temp files, cache |
 | **hostPath** | Node lifetime | Dev/testing only |
 | **PersistentVolumeClaim** | Beyond pod | Production data |
 
-### emptyDir (Temporary)
+### emptyDir: Temporary Storage
+
+Data survives container restarts, but deleted when pod is deleted.
 
 ```yaml
 apiVersion: v1
@@ -231,28 +431,53 @@ spec:
     emptyDir: {}
 ```
 
-### Persistent Volume (PV) and Claim (PVC)
+### Persistent Volumes (PV) and Claims (PVC)
+
+For data that must survive pod deletion, use the PV/PVC pattern:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                  │
+│   Admin creates                User creates              User's Pod
+│   ┌─────────────┐             ┌─────────────┐          ┌─────────┐
+│   │ Persistent  │◄── binds ──►│ Persistent  │◄─ uses ──│  Pod    │
+│   │ Volume (PV) │             │ Volume Claim│          │         │
+│   │ 100Gi       │             │ (PVC) 50Gi  │          │         │
+│   └─────────────┘             └─────────────┘          └─────────┘
+│         │                                                        │
+│         ▼                                                        │
+│   ┌─────────────┐                                                │
+│   │ Actual      │  (AWS EBS, GCP Disk, NFS, etc.)               │
+│   │ Storage     │                                                │
+│   └─────────────┘                                                │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**PersistentVolume (PV):** A piece of storage provisioned by admin
+**PersistentVolumeClaim (PVC):** A request for storage by a user
+
+### PV and PVC Example
 
 ```yaml
-# PV - Storage resource (admin creates)
+# PersistentVolume - admin creates this
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: my-pv
+  name: postgres-pv
 spec:
   storageClassName: manual
   capacity:
     storage: 10Gi
   accessModes:
-    - ReadWriteOnce       # RWO: single node read-write
-  hostPath:
+    - ReadWriteOnce            # One pod can mount read-write
+  hostPath:                    # For local dev only
     path: /mnt/data
 ---
-# PVC - Request for storage (user creates)
+# PersistentVolumeClaim - user creates this
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: my-pvc
+  name: postgres-pvc
 spec:
   storageClassName: manual
   accessModes:
@@ -260,12 +485,15 @@ spec:
   resources:
     requests:
       storage: 5Gi
----
-# Pod using PVC
+```
+
+### Using PVC in a Pod
+
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
-  name: db-pod
+  name: postgres
 spec:
   containers:
   - name: postgres
@@ -276,40 +504,164 @@ spec:
   volumes:
   - name: data
     persistentVolumeClaim:
-      claimName: my-pvc
+      claimName: postgres-pvc
 ```
 
 ### Access Modes
 
 | Mode | Description |
 |------|-------------|
-| **ReadWriteOnce (RWO)** | Single node can mount read-write |
-| **ReadOnlyMany (ROX)** | Multiple nodes can mount read-only |
-| **ReadWriteMany (RWX)** | Multiple nodes can mount read-write |
+| **ReadWriteOnce (RWO)** | One node can mount read-write |
+| **ReadOnlyMany (ROX)** | Many nodes can mount read-only |
+| **ReadWriteMany (RWX)** | Many nodes can mount read-write |
 
 ### Storage Commands
 
 ```bash
 kubectl get pv                    # List PersistentVolumes
 kubectl get pvc                   # List PersistentVolumeClaims
-kubectl describe pvc my-pvc       # PVC details
-kubectl get storageclass          # List StorageClasses
+kubectl describe pvc postgres-pvc # PVC details
 ```
+
+---
+
+## Putting It Together: Complete Backend Setup
+
+Let's configure our backend with all these concepts:
+
+```yaml
+# backend-config.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: production
+data:
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
+  LOG_LEVEL: "info"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backend-secrets
+  namespace: production
+type: Opaque
+stringData:
+  DB_USER: "appuser"
+  DB_PASSWORD: "supersecret123"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: production
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: api
+        image: myapp/backend:1.0
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: backend-config
+        env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: backend-secrets
+              key: DB_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: production
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 8080
+    targetPort: 8080
+```
+
+```bash
+kubectl apply -f backend-config.yaml
+kubectl get all -n production
+```
+
+**Now we have:**
+- Frontend pods → talk to Backend via Service
+- Backend pods → configured via ConfigMap and Secrets
+- Database → persistent storage via PVC
+
+**Next: How do external users reach our application? → Ingress**
 
 ---
 
 ## Summary
 
-| Resource | Purpose | Command |
-|----------|---------|---------|
-| **Service** | Stable network endpoint | `kubectl get svc` |
-| **ConfigMap** | Non-sensitive config | `kubectl get cm` |
-| **Secret** | Sensitive data | `kubectl get secrets` |
-| **PV/PVC** | Persistent storage | `kubectl get pv,pvc` |
+| Concept | Purpose | When to Use |
+|---------|---------|-------------|
+| **Service** | Stable network endpoint | Always - to expose pods |
+| **ClusterIP** | Internal access | Backend services, databases |
+| **NodePort** | External via node port | Development, testing |
+| **LoadBalancer** | External via cloud LB | Production |
+| **ConfigMap** | Non-sensitive config | App settings, feature flags |
+| **Secret** | Sensitive data | Passwords, API keys, certs |
+| **PVC** | Persistent storage | Databases, file uploads |
 
-### Key Points
+### How It All Connects
 
-1. **Services** provide stable IPs - pods come and go
-2. **ConfigMaps** for settings, **Secrets** for credentials
-3. **PVCs** request storage, **PVs** provide it
-4. Use **environment variables** or **volume mounts** for config
+```
+External Users
+      │
+      ▼
+┌─────────────────┐
+│ LoadBalancer    │
+│ Service         │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐    ConfigMap     ┌─────────────────┐
+│ Frontend Pods   │◄───────────────► │ app-config      │
+└────────┬────────┘                  └─────────────────┘
+         │
+         ▼
+┌─────────────────┐    Secret        ┌─────────────────┐
+│ ClusterIP       │                  │ db-secret       │
+│ Service         │                  └────────┬────────┘
+└────────┬────────┘                           │
+         │                                    │
+         ▼                                    ▼
+┌─────────────────┐                  ┌─────────────────┐
+│ Backend Pods    │◄─────────────────│                 │
+└────────┬────────┘                  └─────────────────┘
+         │
+         ▼
+┌─────────────────┐    PVC           ┌─────────────────┐
+│ Database Pod    │◄───────────────► │ postgres-pvc    │
+└─────────────────┘                  └─────────────────┘
+```
+
+### Key Takeaways
+
+1. **Services provide stable networking** - pods come and go, services stay
+2. **Use the right Service type** - ClusterIP for internal, LoadBalancer for external
+3. **Separate config from code** - ConfigMaps and Secrets
+4. **Never put secrets in ConfigMaps** - use Secrets for sensitive data
+5. **Use PVCs for stateful data** - data survives pod restarts
