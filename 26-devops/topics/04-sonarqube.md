@@ -1,5 +1,7 @@
 # SonarQube
 
+> **Note:** This is an optional topic. The concepts covered here provide hands-on experience but are not required for core DevOps understanding.
+
 ## What is SonarQube?
 
 SonarQube is an **open-source platform for code quality analysis**. It automatically reviews your code to detect bugs, vulnerabilities, and code smells.

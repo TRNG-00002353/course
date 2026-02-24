@@ -50,7 +50,7 @@ Plan → Code → Build → Test → Deploy → Operate → Monitor → Plan...
 
 ---
 
-## 3. Jenkins
+## 3. Jenkins *(Optional)*
 
 ### Jenkinsfile Structure
 
@@ -104,7 +104,7 @@ junit 'reports/*.xml'     // Publish test results
 
 ---
 
-## 4. SonarQube
+## 4. SonarQube *(Optional)*
 
 ### What It Detects
 
@@ -173,7 +173,7 @@ Route small % of traffic to new version first.
 
 ---
 
-## 6. Quick Commands
+## 6. Quick Commands *(Optional)*
 
 ### Docker (for Jenkins/SonarQube)
 

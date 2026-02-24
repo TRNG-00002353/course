@@ -1,5 +1,7 @@
 # Jenkins
 
+> **Note:** This is an optional topic. The concepts covered here provide hands-on experience but are not required for core DevOps understanding.
+
 ## What is Jenkins?
 
 Jenkins is an **open-source automation server** that helps automate building, testing, and deploying software. It's one of the most popular CI/CD tools in the industry.

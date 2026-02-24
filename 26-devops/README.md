@@ -2,17 +2,17 @@
 
 ## Overview
 
-Learn DevOps principles and CI/CD practices using industry-standard tools like Jenkins and SonarQube. This module covers concepts that are cloud-agnostic and can be applied to any environment.
+Learn DevOps principles and CI/CD practices. This module covers concepts that are cloud-agnostic and can be applied to any environment. Optional topics cover hands-on experience with Jenkins and SonarQube.
 
 ## Learning Objectives
 
 By the end of this module, you will be able to:
 - Understand DevOps culture and principles
 - Explain CI/CD concepts and benefits
-- Set up and configure Jenkins for automation
-- Create CI/CD pipelines for Java and Angular applications
-- Integrate SonarQube for code quality analysis
 - Apply best practices for continuous integration and delivery
+- *(Optional)* Set up and configure Jenkins for automation
+- *(Optional)* Create CI/CD pipelines for Java and Angular applications
+- *(Optional)* Integrate SonarQube for code quality analysis
 
 ---
 
@@ -35,7 +35,7 @@ Deep dive into continuous integration and delivery.
 - Environment strategies
 - Deployment patterns (rolling, blue-green, canary)
 
-### 3. [Jenkins](./topics/03-jenkins.md)
+### 3. [Jenkins](./topics/03-jenkins.md) *(Optional)*
 Hands-on with the most popular CI/CD server.
 
 - Installing Jenkins (Docker and native)
@@ -44,7 +44,7 @@ Hands-on with the most popular CI/CD server.
 - Build triggers and webhooks
 - Docker integration
 
-### 4. [SonarQube](./topics/04-sonarqube.md)
+### 4. [SonarQube](./topics/04-sonarqube.md) *(Optional)*
 Code quality and security analysis.
 
 - Understanding code quality metrics
@@ -64,7 +64,10 @@ Code quality and security analysis.
            ▼
 ┌─────────────────────┐
 │ 2. CI/CD Fundamentals│  Pipeline concepts, strategies
-└──────────┬──────────┘
+└─────────────────────┘
+
+         OPTIONAL
+           │
            ▼
 ┌─────────────────────┐
 │ 3. Jenkins          │  Hands-on CI/CD automation
@@ -81,22 +84,22 @@ Code quality and security analysis.
 
 | Tool | Purpose | Installation |
 |------|---------|--------------|
-| **Jenkins** | CI/CD automation server | Docker or native |
-| **SonarQube** | Code quality analysis | Docker |
 | **Maven** | Build tool (Java) | Local install |
 | **npm** | Build tool (Node/Angular) | Local install |
 | **Docker** | Container platform | Docker Desktop |
 | **Git** | Version control | Local install |
+| **Jenkins** *(Optional)* | CI/CD automation server | Docker or native |
+| **SonarQube** *(Optional)* | Code quality analysis | Docker |
 
 ---
 
 ## Sample Pipeline
 
 ```
-┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
-│   Git    │───▶│  Build   │───▶│   Test   │───▶│ SonarQube│───▶│  Deploy  │
-│   Push   │    │          │    │          │    │ Analysis │    │          │
-└──────────┘    └──────────┘    └──────────┘    └──────────┘    └──────────┘
+┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│   Git    │───▶│  Build   │───▶│   Test   │───▶│  Deploy  │
+│   Push   │    │          │    │          │    │          │
+└──────────┘    └──────────┘    └──────────┘    └──────────┘
 ```
 
 ---
@@ -105,12 +108,12 @@ Code quality and security analysis.
 
 - Basic understanding of Git
 - Java or Node.js development experience
-- Docker installed (for running Jenkins/SonarQube)
 - Code editor (VS Code recommended)
+- Docker installed *(required only for optional topics)*
 
 ---
 
-## Hands-On Exercises
+## Hands-On Exercises *(Optional)*
 
 1. **Set up Jenkins locally** using Docker
 2. **Create a pipeline** for a Spring Boot application
