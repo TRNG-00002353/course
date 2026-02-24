@@ -159,17 +159,9 @@ sonar-scanner
 #### 4. Deploy Stage
 Release the application to an environment.
 
-```bash
-# Deploy to server
-scp app.jar user@server:/app/
-
-# Deploy with Docker
-docker push myapp:latest
-docker pull myapp:latest && docker run -d myapp:latest
-
-# Deploy to Kubernetes
-kubectl apply -f deployment.yaml
-```
+- Copy build artifacts to the target server
+- Restart the application or service
+- Run smoke tests to verify deployment
 
 #### 5. Monitor Stage
 Track application health after deployment.
@@ -221,45 +213,6 @@ main (production)
 - `feature/*` → Build and test only
 - `develop` → Deploy to staging
 - `main` → Deploy to production
-
----
-
-## Pipeline Configuration
-
-### Pipeline as Code
-
-Define your pipeline in a file that lives with your code:
-
-```yaml
-# Jenkinsfile (Jenkins)
-# .github/workflows/ci.yml (GitHub Actions)
-# .gitlab-ci.yml (GitLab CI)
-```
-
-### Example Pipeline Structure
-
-```yaml
-# Generic pipeline structure
-pipeline:
-  stages:
-    - build
-    - test
-    - deploy
-
-  build:
-    script:
-      - mvn clean package
-
-  test:
-    script:
-      - mvn test
-
-  deploy:
-    script:
-      - ./deploy.sh
-    only:
-      - main
-```
 
 ---
 
@@ -331,20 +284,6 @@ myapp-1.0.0-abc123f.jar
 3. **Don't skip tests** - Ever
 4. **Mock external services** - Tests should be reliable
 5. **Track test coverage** - Aim for 80%+
-
-### Example Test Configuration
-
-```yaml
-test:
-  stages:
-    - lint          # Seconds
-    - unit-test     # Minutes
-    - integration   # Minutes
-    - e2e           # Longer
-
-  # Stop if any stage fails
-  fail-fast: true
-```
 
 ---
 
@@ -443,19 +382,6 @@ git push
 switch-traffic --to blue
 ```
 
-### Automatic Rollback
-
-```yaml
-deploy:
-  script:
-    - ./deploy.sh
-  health_check:
-    url: http://myapp/health
-    retries: 3
-  on_failure:
-    - ./rollback.sh
-```
-
 ---
 
 ## CI/CD Best Practices
@@ -485,18 +411,6 @@ Pipeline Metrics to Track:
 ├── Test pass rate
 ├── Deployment frequency
 └── Mean time to recovery
-```
-
-### 4. Version Everything
-
-```
-Repository should contain:
-├── src/                    # Application code
-├── tests/                  # Test files
-├── Jenkinsfile            # Pipeline definition
-├── Dockerfile             # Container definition
-├── docker-compose.yml     # Local development
-└── scripts/               # Deployment scripts
 ```
 
 ---
