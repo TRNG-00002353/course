@@ -81,9 +81,9 @@ Manual Process:                 Automated:
 ### 2. Continuous Improvement
 
 - Measure everything
-- Learn from failures
+- Learn from failures (blameless post-mortems)
 - Iterate and improve
-- Blameless post-mortems
+- Focus on "How do we prevent this?" not "Who's fault is this?"
 
 ### 3. Collaboration
 
@@ -191,44 +191,6 @@ Application → Logs → Log aggregator → Dashboard
 
 ---
 
-## DevOps Tools Landscape
-
-### By Category
-
-```
-┌────────────────────────────────────────────────────────────┐
-│                     DevOps Tools                            │
-├────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Source Control:     Git, GitHub, GitLab, Bitbucket        │
-│                                                             │
-│  CI/CD:              Jenkins, GitHub Actions, GitLab CI    │
-│                                                             │
-│  Build:              Maven, Gradle, npm, webpack           │
-│                                                             │
-│  Testing:            JUnit, Jest, Selenium, SonarQube      │
-│                                                             │
-│  Containers:         Docker, Podman                        │
-│                                                             │
-│  Orchestration:      Kubernetes, Docker Swarm              │
-│                                                             │
-│  Configuration:      Ansible, Terraform, Chef              │
-│                                                             │
-│  Monitoring:         Prometheus, Grafana, ELK Stack        │
-│                                                             │
-└────────────────────────────────────────────────────────────┘
-```
-
-### Common Tool Combinations
-
-| Stack | Tools |
-|-------|-------|
-| **Java Stack** | Git, Maven, Jenkins, JUnit, SonarQube, Docker |
-| **JavaScript Stack** | Git, npm, GitHub Actions, Jest, Docker |
-| **Cloud-Native** | Git, Docker, Kubernetes, Terraform, Prometheus |
-
----
-
 ## DevOps Metrics
 
 ### Key Metrics to Track
@@ -252,36 +214,6 @@ Traditional:                    DevOps Goal:
 
 ---
 
-## Getting Started with DevOps
-
-### First Steps
-
-1. **Version Control Everything**
-   - Put all code in Git
-   - Include configuration files
-   - Include deployment scripts
-
-2. **Automate the Build**
-   - Create build scripts (Maven, npm)
-   - Remove manual steps
-
-3. **Add Automated Tests**
-   - Start with unit tests
-   - Add integration tests
-   - Run tests on every commit
-
-4. **Set Up CI/CD**
-   - Use Jenkins, GitHub Actions, or similar
-   - Automate build and test
-   - Eventually automate deployment
-
-5. **Monitor Everything**
-   - Add logging
-   - Track metrics
-   - Set up alerts
-
----
-
 ## DevOps Culture
 
 ### Mindset Shift
@@ -293,14 +225,6 @@ Traditional:                    DevOps Goal:
 | "We've always done it this way" | "Let's try and learn" |
 | "Who broke it?" | "How do we prevent this?" |
 
-### Blameless Culture
-
-When something goes wrong:
-- Focus on **what** happened, not **who** did it
-- Ask "How do we prevent this?" not "Who's fault is this?"
-- Learn from failures
-- Share knowledge
-
 ---
 
 ## Summary
@@ -309,17 +233,8 @@ When something goes wrong:
 |---------|------------|
 | **DevOps** | Culture + practices combining Dev and Ops |
 | **Goal** | Deliver software faster and more reliably |
-| **Automation** | Automate build, test, deploy |
-| **CI/CD** | Continuous Integration and Delivery |
-| **Culture** | Collaboration, shared responsibility, learning |
-
-### Key Takeaways
-
-1. DevOps is about **culture** as much as tools
-2. **Automate** repetitive tasks
-3. **Fail fast** - catch issues early
-4. **Continuous improvement** - always get better
-5. **Shared responsibility** - everyone owns quality
+| **Core Principles** | Automation, Collaboration, Continuous Improvement, Fast Feedback |
+| **Key Practices** | Version Control, IaC, CI/CD, Monitoring |
 
 ## Next Topic
 
