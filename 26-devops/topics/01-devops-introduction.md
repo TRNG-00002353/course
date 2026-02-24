@@ -103,32 +103,14 @@ Manual Process:                 Automated:
 
 ## The DevOps Lifecycle
 
-DevOps is often represented as an infinite loop:
+DevOps is often represented as an infinite loop, showing continuous flow from development through operations and back:
 
 ```
-        ┌─────────────────────────────────────────┐
-        │                                          │
-        ▼                                          │
-┌──────────────┐    ┌──────────────┐    ┌─────────┴────┐
-│    PLAN      │───▶│    CODE      │───▶│    BUILD     │
-│              │    │              │    │              │
-│ Requirements │    │ Development  │    │ Compile      │
-│ User stories │    │ Version ctrl │    │ Package      │
-└──────────────┘    └──────────────┘    └──────┬───────┘
-                                               │
-┌──────────────┐    ┌──────────────┐    ┌──────▼───────┐
-│   MONITOR    │◀───│   OPERATE    │◀───│    TEST      │
-│              │    │              │    │              │
-│ Logs, metrics│    │ Run in prod  │    │ Unit tests   │
-│ Alerts       │    │ Maintain     │    │ Integration  │
-└──────┬───────┘    └──────────────┘    └──────┬───────┘
-       │                                       │
-       │            ┌──────────────┐           │
-       │            │   DEPLOY     │           │
-       └───────────▶│              │◀──────────┘
-                    │ Release to   │
-                    │ production   │
-                    └──────────────┘
+┌──────┐   ┌──────┐   ┌───────┐   ┌──────┐   ┌────────┐   ┌─────────┐   ┌─────────┐
+│ PLAN │──▶│ CODE │──▶│ BUILD │──▶│ TEST │──▶│ DEPLOY │──▶│ OPERATE │──▶│ MONITOR │
+└──────┘   └──────┘   └───────┘   └──────┘   └────────┘   └─────────┘   └────┬────┘
+    ▲                                                                        │
+    └────────────────────────── Continuous Feedback ─────────────────────────┘
 ```
 
 ### Phases Explained
