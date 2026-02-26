@@ -79,6 +79,201 @@ A Kubernetes cluster has two types of machines:
 
 ---
 
+## Master Node vs Worker Node: Deep Dive
+
+Understanding the difference between master and worker nodes is fundamental to Kubernetes.
+
+### Master Node (Control Plane)
+
+The **Master Node** is the brain of the cluster. It makes all the decisions but **never runs your application containers**.
+
+```
+┌─────────────────────── MASTER NODE ───────────────────────┐
+│                                                            │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
+│  │  API Server  │  │  Scheduler   │  │  Controller  │    │
+│  │              │  │              │  │  Manager     │    │
+│  │ - REST API   │  │ - Watches    │  │              │    │
+│  │ - Auth/AuthZ │  │   unscheduled│  │ - Node ctrl  │    │
+│  │ - Validation │  │   pods       │  │ - Repl ctrl  │    │
+│  │ - Entry point│  │ - Assigns to │  │ - Endpoint   │    │
+│  │   for all    │  │   best node  │  │   ctrl       │    │
+│  │   commands   │  │              │  │ - Service    │    │
+│  └──────────────┘  └──────────────┘  │   account    │    │
+│                                       └──────────────┘    │
+│  ┌────────────────────────────────────────────────────┐  │
+│  │                       etcd                          │  │
+│  │  - Distributed key-value store                      │  │
+│  │  - Stores ALL cluster data (the "source of truth") │  │
+│  │  - Highly available (usually 3 or 5 replicas)      │  │
+│  └────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────────────────────────┘
+```
+
+#### Master Node Components Explained
+
+| Component | Role | What Happens If It Fails |
+|-----------|------|--------------------------|
+| **API Server** | Single entry point for all cluster operations. Every kubectl command goes here first. | No new operations possible, but existing pods keep running |
+| **Scheduler** | Watches for newly created pods with no assigned node and selects a node for them to run on | New pods stay in "Pending" state |
+| **Controller Manager** | Runs controller loops that watch cluster state and make changes to move toward desired state | Automatic recovery stops (no new pods if one dies) |
+| **etcd** | Stores all cluster data: configs, secrets, current state | Cluster is completely broken - this is why etcd backup is critical |
+
+#### How the Scheduler Decides Where to Run Pods
+
+```
+New Pod Created
+      │
+      ▼
+┌─────────────────────────────────────────────────────────┐
+│                    SCHEDULER CHECKS:                     │
+│                                                          │
+│  1. Resource Requirements                                │
+│     Does the node have enough CPU/memory?                │
+│                                                          │
+│  2. Node Selectors / Affinity                           │
+│     Does pod require specific node labels?               │
+│                                                          │
+│  3. Taints and Tolerations                              │
+│     Is the node tainted? Does pod tolerate it?          │
+│                                                          │
+│  4. Resource Availability                                │
+│     Which node has the most available resources?         │
+│                                                          │
+│  5. Pod Distribution                                     │
+│     Spread pods across nodes for high availability       │
+└─────────────────────────────────────────────────────────┘
+      │
+      ▼
+  Best Node Selected → Pod Scheduled
+```
+
+### Worker Node
+
+The **Worker Node** is where your applications actually run. Each worker node can run many pods.
+
+```
+┌─────────────────────── WORKER NODE ───────────────────────┐
+│                                                            │
+│  ┌──────────────────────────────────────────────────────┐│
+│  │                      kubelet                          ││
+│  │  - Registers node with the cluster                    ││
+│  │  - Receives pod specs from API server                 ││
+│  │  - Ensures containers are running and healthy         ││
+│  │  - Reports node and pod status back to master         ││
+│  │  - Executes liveness/readiness probes                 ││
+│  └──────────────────────────────────────────────────────┘│
+│                                                            │
+│  ┌──────────────────────────────────────────────────────┐│
+│  │                    kube-proxy                         ││
+│  │  - Maintains network rules on the node                ││
+│  │  - Enables Service abstraction (load balancing)       ││
+│  │  - Uses iptables or IPVS for routing                  ││
+│  └──────────────────────────────────────────────────────┘│
+│                                                            │
+│  ┌──────────────────────────────────────────────────────┐│
+│  │               Container Runtime                        ││
+│  │  - Actually pulls images and runs containers          ││
+│  │  - containerd (most common), CRI-O, Docker            ││
+│  │  - Implements Container Runtime Interface (CRI)       ││
+│  └──────────────────────────────────────────────────────┘│
+│                                                            │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐     │
+│  │  Pod A  │  │  Pod B  │  │  Pod C  │  │  Pod D  │     │
+│  │(your app)│  │(your app)│  │(your app)│  │(your app)│    │
+│  └─────────┘  └─────────┘  └─────────┘  └─────────┘     │
+└────────────────────────────────────────────────────────────┘
+```
+
+### Key Differences Summary
+
+| Aspect | Master Node | Worker Node |
+|--------|-------------|-------------|
+| **Purpose** | Cluster management and orchestration | Run application workloads |
+| **Runs your containers?** | No (only system components) | Yes |
+| **Number in cluster** | 1 (dev), 3+ (production for HA) | Many (scale based on workload) |
+| **If it fails** | Can't make changes, but apps keep running | Pods rescheduled to other workers |
+| **Resources needed** | Less (management only) | More (runs actual workloads) |
+| **Direct user access** | Usually restricted | Never direct access |
+
+### High Availability Setup
+
+In production, you run multiple master nodes:
+
+```
+                    Load Balancer
+                         │
+         ┌───────────────┼───────────────┐
+         │               │               │
+         ▼               ▼               ▼
+   ┌──────────┐   ┌──────────┐   ┌──────────┐
+   │ Master 1 │   │ Master 2 │   │ Master 3 │
+   │          │   │          │   │          │
+   │ API, Sch │   │ API, Sch │   │ API, Sch │
+   │ Ctrl Mgr │   │ Ctrl Mgr │   │ Ctrl Mgr │
+   └────┬─────┘   └────┬─────┘   └────┬─────┘
+        │              │              │
+        └──────────────┼──────────────┘
+                       │
+              ┌────────┴────────┐
+              │   etcd cluster  │
+              │   (3 or 5 nodes)│
+              └─────────────────┘
+                       │
+         ┌─────────────┼─────────────┐
+         │             │             │
+         ▼             ▼             ▼
+   ┌──────────┐  ┌──────────┐  ┌──────────┐
+   │ Worker 1 │  │ Worker 2 │  │ Worker N │
+   └──────────┘  └──────────┘  └──────────┘
+```
+
+---
+
+## What Happens When You Create a Pod
+
+Understanding this flow is essential for troubleshooting:
+
+```
+1. kubectl apply -f pod.yaml
+         │
+         ▼
+2. API Server receives request
+   - Authenticates user
+   - Validates YAML
+   - Stores pod spec in etcd (status: Pending)
+         │
+         ▼
+3. Scheduler notices new unscheduled pod
+   - Evaluates all worker nodes
+   - Selects best node
+   - Updates pod in etcd with node assignment
+         │
+         ▼
+4. Kubelet on selected node notices new pod assigned to it
+   - Pulls container image
+   - Creates and starts container
+   - Reports status back to API server
+         │
+         ▼
+5. Pod is Running!
+   - kubelet continues monitoring
+   - Reports health status periodically
+```
+
+### Common States and What They Mean
+
+| State | Meaning | Common Cause |
+|-------|---------|--------------|
+| **Pending** | Pod accepted but not running | Waiting for scheduling or image pull |
+| **Running** | At least one container is running | Normal operation |
+| **Succeeded** | All containers completed successfully | Job/batch pods |
+| **Failed** | All containers terminated, at least one failed | Application error |
+| **CrashLoopBackOff** | Container keeps crashing and restarting | Application bug, missing config |
+| **ImagePullBackOff** | Can't pull container image | Wrong image name, no registry access |
+
+---
+
 ## Our Scenario: Deploying a Web Application
 
 Throughout these topics, we'll deploy a web application step by step:
@@ -97,6 +292,58 @@ Let's start with the building blocks.
 
 ---
 
+## Labels and Selectors: The Glue of Kubernetes
+
+Before diving into pods, understand this crucial concept - **labels and selectors** are how Kubernetes components find and manage each other.
+
+### What Are Labels?
+
+Labels are key-value pairs attached to objects (pods, services, deployments). They're like tags that help organize and select resources.
+
+```yaml
+metadata:
+  labels:
+    app: frontend          # What application is this?
+    environment: production # What environment?
+    team: web-team         # Who owns this?
+    version: v1.2.0        # What version?
+```
+
+### How Selectors Work
+
+Selectors find objects based on their labels:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Service                                 │
+│   selector:                                                  │
+│     app: frontend  ─────────────┐                           │
+│                                 │ "Find all pods with       │
+│                                 │  app=frontend label"      │
+└─────────────────────────────────┼───────────────────────────┘
+                                  │
+        ┌─────────────────────────┼─────────────────────────┐
+        │                         │                         │
+        ▼                         ▼                         ▼
+  ┌───────────┐            ┌───────────┐            ┌───────────┐
+  │   Pod 1   │            │   Pod 2   │            │   Pod 3   │
+  │app:frontend│ ✓ Match!  │app:frontend│ ✓ Match!  │app:backend│ ✗ No match
+  └───────────┘            └───────────┘            └───────────┘
+```
+
+### Why This Matters
+
+| Component | Uses Labels/Selectors To |
+|-----------|-------------------------|
+| **Service** | Find which pods to send traffic to |
+| **Deployment** | Know which pods it manages |
+| **ReplicaSet** | Track pods it should maintain |
+| **Network Policy** | Identify which pods rules apply to |
+
+**Key insight:** If your labels don't match, things break silently. A service with wrong selector = no traffic to pods.
+
+---
+
 ## Pods: The Smallest Unit
 
 ### Why Pods?
@@ -107,6 +354,25 @@ You can't run a container directly in Kubernetes. Containers run inside **Pods**
 - Share the same network (can talk via `localhost`)
 - Share the same storage
 - Are scheduled together on the same node
+- Have a single IP address (containers inside share it)
+
+### Pod Lifecycle
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      POD LIFECYCLE                           │
+│                                                              │
+│  Created ──► Pending ──► Running ──► Succeeded/Failed       │
+│                │            │                                │
+│                │            │                                │
+│         (Scheduling)  (Containers run)                       │
+│                                                              │
+│  Common issues:                                              │
+│  - Stuck in Pending = scheduler can't place it              │
+│  - CrashLoopBackOff = container keeps crashing              │
+│  - ImagePullBackOff = can't download container image        │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ### Most Common: One Container Per Pod
 
@@ -267,6 +533,51 @@ spec:
           limits:
             cpu: 250m
             memory: 256Mi
+```
+
+### Resource Requests vs Limits: Essential Knowledge
+
+This is critical for production deployments:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  REQUESTS vs LIMITS                          │
+│                                                              │
+│  requests:                   limits:                         │
+│    cpu: 100m      ◄─────►      cpu: 250m                    │
+│    memory: 128Mi             memory: 256Mi                   │
+│                                                              │
+│  "Guaranteed minimum"       "Maximum allowed"                │
+│  Scheduler uses this        Container killed if exceeded     │
+│  to place pod               (for memory - OOMKilled)         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+| Concept | What It Means | What Happens |
+|---------|---------------|--------------|
+| **Request** | Minimum resources guaranteed | Scheduler only places pod on node with this much available |
+| **Limit** | Maximum resources allowed | CPU: throttled if exceeded. Memory: pod killed (OOMKilled) |
+| **No limits set** | Pod can use unlimited resources | Can starve other pods, cause node instability |
+
+**CPU Units:**
+- `1` = 1 CPU core
+- `100m` = 100 millicores = 0.1 CPU core
+- `500m` = 0.5 CPU core
+
+**Memory Units:**
+- `128Mi` = 128 Mebibytes (≈134 MB)
+- `1Gi` = 1 Gibibyte (≈1.07 GB)
+
+### Best Practice
+
+```yaml
+resources:
+  requests:
+    cpu: 100m       # Start low, increase based on monitoring
+    memory: 128Mi
+  limits:
+    cpu: 500m       # Usually 2-5x the request
+    memory: 512Mi   # Should be close to what app actually needs
 ```
 
 ### Deployment Commands

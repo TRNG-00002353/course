@@ -51,6 +51,35 @@ A **Service** provides a stable IP address and DNS name that routes traffic to p
 
 ---
 
+## How Services Find Pods
+
+Services use **label selectors** to find pods. This is crucial to understand:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  SERVICE SELECTION PROCESS                   │
+│                                                              │
+│  Service YAML:                    Pod YAML:                  │
+│  ┌─────────────────────┐         ┌─────────────────────┐    │
+│  │ selector:           │         │ labels:             │    │
+│  │   app: backend      │────────►│   app: backend      │ ✓  │
+│  │   tier: api         │         │   tier: api         │    │
+│  └─────────────────────┘         └─────────────────────┘    │
+│           │                                                  │
+│           │                      ┌─────────────────────┐    │
+│           └─────────────────────►│ labels:             │    │
+│                                  │   app: backend      │ ✗  │
+│                                  │   tier: database    │    │
+│                                  └─────────────────────┘    │
+│                                                              │
+│  ALL selector labels must match for a pod to receive traffic│
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Common mistake:** Service not routing traffic? Check if labels match exactly!
+
+---
+
 ## Service Types
 
 | Type | Access From | Use Case |
@@ -58,6 +87,35 @@ A **Service** provides a stable IP address and DNS name that routes traffic to p
 | **ClusterIP** | Inside cluster only | Backend services, databases |
 | **NodePort** | Outside via node IP:port | Development, testing |
 | **LoadBalancer** | External load balancer | Production external access |
+
+### Choosing the Right Service Type
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              WHICH SERVICE TYPE DO I NEED?                   │
+│                                                              │
+│  ┌─────────────────────────────────────────────────────────┐│
+│  │ Does it need to be accessed from outside the cluster?   ││
+│  └─────────────────────────────┬───────────────────────────┘│
+│                                │                             │
+│              NO ◄──────────────┴──────────────► YES          │
+│               │                                   │          │
+│               ▼                                   ▼          │
+│        ┌────────────┐               ┌─────────────────────┐ │
+│        │ ClusterIP  │               │ Cloud environment?  │ │
+│        │            │               └──────────┬──────────┘ │
+│        │ - Databases│                          │            │
+│        │ - Internal │            YES ◄─────────┴────► NO    │
+│        │   APIs     │             │                    │    │
+│        └────────────┘             ▼                    ▼    │
+│                            ┌────────────┐      ┌──────────┐ │
+│                            │LoadBalancer│      │ NodePort │ │
+│                            │            │      │          │ │
+│                            │ Production │      │ Dev/Test │ │
+│                            │ websites   │      │ Local    │ │
+│                            └────────────┘      └──────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ### ClusterIP (Default) - Internal Communication
 
@@ -221,6 +279,16 @@ Hardcoding configuration in container images is bad:
 
 **ConfigMaps** store non-sensitive configuration as key-value pairs.
 
+### ConfigMap vs Environment Variables vs Command Args
+
+| Method | Best For | Pros | Cons |
+|--------|----------|------|------|
+| **ConfigMap** | Multiple config values, shared across pods | Reusable, easy to update | Extra object to manage |
+| **env in Pod spec** | Simple, pod-specific values | Direct, no extra objects | Hardcoded in YAML |
+| **Command args** | Overriding container defaults | Simple for single values | Limited flexibility |
+
+**Rule of thumb:** Use ConfigMaps for anything you might change without redeploying.
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                     ConfigMap                            │
@@ -326,6 +394,35 @@ ConfigMaps are stored in plain text. For sensitive data like passwords and API k
 - Base64 encoding (not encryption, but separation)
 - Can be encrypted at rest in etcd
 - Access can be restricted via RBAC
+
+### Important Security Considerations
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│           SECRETS ARE NOT ENCRYPTED BY DEFAULT!              │
+│                                                              │
+│  Base64 encoding ≠ Encryption                               │
+│                                                              │
+│  echo "password123" | base64  →  cGFzc3dvcmQxMjM=           │
+│  echo "cGFzc3dvcmQxMjM=" | base64 -d  →  password123        │
+│                                                              │
+│  Anyone with cluster access can decode secrets!              │
+│                                                              │
+│  For true security:                                          │
+│  - Enable etcd encryption at rest                            │
+│  - Use RBAC to limit secret access                           │
+│  - Consider external secret managers (Vault, AWS Secrets)    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Secret Types
+
+| Type | Use Case | Example |
+|------|----------|---------|
+| **Opaque** | Generic secrets (default) | Passwords, API keys |
+| **kubernetes.io/tls** | TLS certificates | HTTPS certs for Ingress |
+| **kubernetes.io/dockerconfigjson** | Docker registry credentials | Pulling from private registry |
+| **kubernetes.io/basic-auth** | Basic authentication | Username/password |
 
 ### Creating Secrets
 
@@ -514,6 +611,57 @@ spec:
 | **ReadWriteOnce (RWO)** | One node can mount read-write |
 | **ReadOnlyMany (ROX)** | Many nodes can mount read-only |
 | **ReadWriteMany (RWX)** | Many nodes can mount read-write |
+
+### StorageClass: Dynamic Provisioning
+
+In production, you don't manually create PVs. **StorageClass** enables automatic provisioning:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│              DYNAMIC vs STATIC PROVISIONING                  │
+│                                                              │
+│  STATIC (Manual):                                            │
+│  Admin creates PV ──► User creates PVC ──► PVC binds to PV  │
+│  (tedious for many volumes)                                  │
+│                                                              │
+│  DYNAMIC (Automatic):                                        │
+│  User creates PVC with StorageClass ──► PV auto-created!    │
+│  (production standard)                                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+```yaml
+# StorageClass for AWS EBS
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fast-storage
+provisioner: ebs.csi.aws.com    # Cloud-specific provisioner
+parameters:
+  type: gp3                      # SSD storage
+reclaimPolicy: Delete            # Delete volume when PVC deleted
+volumeBindingMode: WaitForFirstConsumer
+---
+# PVC using the StorageClass
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: database-pvc
+spec:
+  storageClassName: fast-storage  # Reference StorageClass
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+```
+
+### Reclaim Policies
+
+| Policy | What Happens When PVC Deleted | Use Case |
+|--------|-------------------------------|----------|
+| **Delete** | PV and underlying storage deleted | Dev/test environments |
+| **Retain** | PV kept, must be manually cleaned | Production data you want to keep |
 
 ### Storage Commands
 

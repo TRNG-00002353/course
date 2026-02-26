@@ -51,6 +51,42 @@ Kubernetes automatically creates DNS records for services:
 <service-name>.<namespace>.svc.cluster.local
 ```
 
+### CoreDNS: The Cluster DNS Server
+
+**CoreDNS** is the DNS server running in your cluster that makes service discovery work:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    HOW DNS RESOLUTION WORKS                  │
+│                                                              │
+│  1. Pod wants to reach "backend-service"                     │
+│                    │                                         │
+│                    ▼                                         │
+│  2. Pod's /etc/resolv.conf points to CoreDNS                │
+│     nameserver 10.96.0.10  (CoreDNS ClusterIP)              │
+│                    │                                         │
+│                    ▼                                         │
+│  3. CoreDNS looks up service in its records                  │
+│     "backend-service.default.svc.cluster.local"              │
+│                    │                                         │
+│                    ▼                                         │
+│  4. Returns ClusterIP of the service                         │
+│     10.96.45.123                                             │
+│                    │                                         │
+│                    ▼                                         │
+│  5. Pod connects to 10.96.45.123                            │
+│     kube-proxy routes to actual pod                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### DNS Name Formats
+
+| Format | When to Use | Example |
+|--------|-------------|---------|
+| `service-name` | Same namespace | `backend-service` |
+| `service-name.namespace` | Different namespace | `backend-service.production` |
+| `service-name.namespace.svc.cluster.local` | Full FQDN (always works) | `backend-service.production.svc.cluster.local` |
+
 ### How It Works
 
 ```yaml
@@ -138,6 +174,25 @@ Each LoadBalancer service creates a new cloud load balancer:
 
 1. **Ingress Controller** - A pod that runs nginx/traefik (you install this once)
 2. **Ingress Resource** - Your routing rules (you create per application)
+
+### Popular Ingress Controllers
+
+| Controller | Best For | Notes |
+|------------|----------|-------|
+| **NGINX Ingress** | Most common, general purpose | Default choice for most |
+| **Traefik** | Auto-discovery, Let's Encrypt | Great for dynamic environments |
+| **AWS ALB Ingress** | AWS environments | Native AWS integration |
+| **Istio Gateway** | Service mesh users | Advanced traffic management |
+
+**Important:** Ingress resources do nothing without an Ingress Controller installed!
+
+```bash
+# Check if ingress controller is installed
+kubectl get pods -n ingress-nginx
+
+# Install NGINX Ingress Controller (example)
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+```
 
 ### Basic Ingress Example
 
@@ -502,6 +557,118 @@ kubectl get events --sort-by='.lastTimestamp'
 kubectl exec -it <pod-name> -- curl http://service-name:port
 ```
 
+---
+
+## Common Errors and Solutions
+
+### Pod Stuck in Pending
+
+```
+NAME        READY   STATUS    RESTARTS   AGE
+my-pod      0/1     Pending   0          5m
+```
+
+**Causes and Solutions:**
+
+| Cause | How to Identify | Solution |
+|-------|-----------------|----------|
+| **Insufficient resources** | `kubectl describe pod` shows "Insufficient cpu/memory" | Add more nodes or reduce resource requests |
+| **No matching node** | Node selector/affinity doesn't match any node | Check node labels, adjust selectors |
+| **PVC not bound** | "persistentvolumeclaim not found" or "waiting for first consumer" | Create PV or check StorageClass |
+
+```bash
+# Debug Pending pod
+kubectl describe pod my-pod | grep -A 10 Events
+```
+
+### CrashLoopBackOff
+
+```
+NAME        READY   STATUS             RESTARTS   AGE
+my-pod      0/1     CrashLoopBackOff   5          10m
+```
+
+**The container keeps crashing and Kubernetes keeps restarting it.**
+
+```bash
+# Check why it's crashing
+kubectl logs my-pod --previous
+
+# Common causes:
+# - Application error (check logs)
+# - Missing environment variables
+# - Can't connect to database
+# - Wrong command or entrypoint
+```
+
+### ImagePullBackOff
+
+```
+NAME        READY   STATUS             RESTARTS   AGE
+my-pod      0/1     ImagePullBackOff   0          5m
+```
+
+**Kubernetes can't pull the container image.**
+
+| Cause | Solution |
+|-------|----------|
+| Typo in image name | Check image: field carefully |
+| Private registry | Add imagePullSecrets |
+| Image doesn't exist | Verify image exists in registry |
+| Network issue | Check node internet connectivity |
+
+```bash
+# Check exact error
+kubectl describe pod my-pod | grep -A 5 "Failed"
+```
+
+### Service Not Routing Traffic
+
+```
+# Pod is running but service returns nothing
+curl: (7) Failed to connect
+```
+
+**Troubleshooting steps:**
+
+```bash
+# 1. Check service exists
+kubectl get svc my-service
+
+# 2. Check endpoints (pods connected to service)
+kubectl get endpoints my-service
+# If empty = labels don't match!
+
+# 3. Compare labels
+kubectl get pods --show-labels
+kubectl describe svc my-service | grep Selector
+
+# 4. Test from inside cluster
+kubectl run test --image=busybox --rm -it -- wget -qO- http://my-service:80
+```
+
+### DNS Resolution Failing
+
+```bash
+# From inside a pod
+nslookup my-service
+# Server: 10.96.0.10
+# ** server can't find my-service: NXDOMAIN
+```
+
+**Solutions:**
+
+```bash
+# Check CoreDNS is running
+kubectl get pods -n kube-system -l k8s-app=kube-dns
+
+# Try full DNS name
+nslookup my-service.default.svc.cluster.local
+
+# Check service exists in correct namespace
+kubectl get svc --all-namespaces | grep my-service
+```
+
 ### Quick Reference
 
 | Command | Description |
@@ -514,6 +681,67 @@ kubectl exec -it <pod-name> -- curl http://service-name:port
 | `kubectl delete -f X.yaml` | Delete resource |
 | `kubectl rollout undo deploy/X` | Rollback deployment |
 | `kubectl port-forward pod/X 8080:80` | Local access |
+
+### Essential kubectl Productivity Tips
+
+```bash
+# Set up aliases (add to ~/.bashrc or ~/.zshrc)
+alias k='kubectl'
+alias kgp='kubectl get pods'
+alias kgs='kubectl get svc'
+alias kgd='kubectl get deployments'
+alias kd='kubectl describe'
+alias kl='kubectl logs'
+alias kaf='kubectl apply -f'
+
+# Enable autocompletion (bash)
+source <(kubectl completion bash)
+
+# Enable autocompletion (zsh)
+source <(kubectl completion zsh)
+```
+
+### Output Formats
+
+```bash
+# Wide output (more columns)
+kubectl get pods -o wide
+
+# YAML output (see full spec)
+kubectl get pod my-pod -o yaml
+
+# JSON output (for scripting)
+kubectl get pod my-pod -o json
+
+# Custom columns
+kubectl get pods -o custom-columns=NAME:.metadata.name,STATUS:.status.phase
+
+# JSONPath (extract specific fields)
+kubectl get pods -o jsonpath='{.items[*].metadata.name}'
+```
+
+### Useful One-Liners
+
+```bash
+# Get all resources in namespace
+kubectl get all -n production
+
+# Delete all pods in namespace (careful!)
+kubectl delete pods --all -n development
+
+# Get pods sorted by restart count
+kubectl get pods --sort-by='.status.containerStatuses[0].restartCount'
+
+# Get pods on specific node
+kubectl get pods --field-selector spec.nodeName=worker-1
+
+# Watch pods in real-time
+kubectl get pods -w
+
+# Get resource usage (requires metrics-server)
+kubectl top pods
+kubectl top nodes
+```
 
 ---
 
